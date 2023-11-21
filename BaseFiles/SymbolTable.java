@@ -2,7 +2,7 @@ package BaseFiles;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-public class ExpressionVisitor implements ExpressionParserVisitor {
+public class SymbolTable implements ExpressionParserVisitor {
 
     private LinkedList stack = new LinkedList();
     private HashMap symbolTable = new HashMap();

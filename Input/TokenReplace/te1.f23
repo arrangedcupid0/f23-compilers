@@ -1,0 +1,20 @@
+program tiny_example_1
+{
+    function integer main()
+    {
+        integer i;
+        i := 441;
+        print_integer( i );
+    }
+}
+
+K_PROGRAM IDENTIFIER
+K_LCURLY
+    K_FUNCTION K_INTEGER IDENTIFIER K_LPAREN K_RPAREN
+    K_LCURLY
+        K_INTEGER IDENTIFIER K_SEMI
+        IDENTIFIER K_ASSIGN ICONSTANT K_SEMI
+        K_PRINT_INTEGER K_LPAREN IDENTIFIER K_RPAREN K_SEMI
+    K_RCURLY
+K_RCURLY
+    

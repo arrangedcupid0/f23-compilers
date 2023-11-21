@@ -3,25 +3,25 @@ options {
    VISITOR=true;
    NODE_DEFAULT_VOID=true;
    NODE_EXTENDS="BaseNode";
-   JJTREE_OUTPUT_DIRECTORY = "CalcInterpreter/Generated";
-   OUTPUT_DIRECTORY = "CalcInterpreter/Generated";
+   JJTREE_OUTPUT_DIRECTORY = "Generated";
+   OUTPUT_DIRECTORY = "Generated";
 }
 
-PARSER_BEGIN(ExpressionParser)
+PARSER_BEGIN(Compiler)
 
-public class ExpressionParser {
+public class Compiler {
 
   public static void main(String args[]) throws Exception {
-    //ExpressionParser parser = new ExpressionParser(new java.io.FileReader(args[0]));
-    ExpressionParser parser = new ExpressionParser(System.in);
+    //Compiler parser = new Compiler(new java.io.FileReader(args[0]));
+    Compiler parser = new Compiler(System.in);
     ASTstart expr=parser.start();
-    ExpressionVisitor v=new ExpressionVisitor();
+    SymbolTable v=new SymbolTable();
     System.out.println(expr.jjtAccept(v,null));
 
   }
 }
 
-PARSER_END(ExpressionParser)
+PARSER_END(Compiler)
 
 SKIP :
 {
@@ -29,32 +29,49 @@ SKIP :
 	|"\t"
 	|"\n"
 	|"\r"
+	|"\f"
 }
 
 TOKEN:
 {
-		<NUMBER: (["0"-"9"])+ >
-	|	<VARIABLE: (["a"-"z"])+>	
-	|	<DIVIDE: "%">
-	|	<MULTIPLY: "*">
-	|	<PLUS: "+">
-	|	<MINUS: "-">
+		<K_PROGRAM: 		"program" >
+	|	<K_FUNCTION: 		"function">
+	|	<K_PRINT_INTEGER: 	"print_integer">
+	|	<K_INTEGER: 		"integer">
+	|	<K_ASSIGN: 			":=">
+	|	<K_LCURLY: 			"{">
+	|	<K_RCURLY: 			"}">
+	| 	<K_LPAREN: 			"(">
+	| 	<K_RPAREN: 			")">
+	| 	<K_SEMI: 			";">
+	|	<ICONSTANT: 		[0-9]+>	
+	|	<IDENTIFIER: 		[_a-zA-Z$][_a-zA-Z0-9$]*>
 }
 
-ASTstart start() #start:{}
+ASTprogram program() #program:
+{ /*Variable Declrations*/ }
 {
-  (statement())+
+  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (function())+ <K_RCURLY>
   { return jjtThis; }
 }
 
-void statement() #Statement:
-{}
+void function() #function:
+{ /*Variable Declrations*/ }
 {
-	identifier()"="expression()";"
+	<K_FUNCTION> <K_INTEGER> <IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> (statement())+ <K_RCURLY>
+	//identifier()"="expression()";"
 }
 
+void statement() :
+{ /*Variable Declrations*/ }
+{
+
+}
+
+
+
 void identifier() :
-{}
+{/*Variable Declrations*/}
 {
 	<VARIABLE>
 	{
