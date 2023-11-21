@@ -14,7 +14,7 @@ public class Compiler {
   public static void main(String args[]) throws Exception {
     //Compiler parser = new Compiler(new java.io.FileReader(args[0]));
     Compiler parser = new Compiler(System.in);
-    ASTstart expr=parser.start();
+    ASTprogram expr=parser.start();
     SymbolTable v=new SymbolTable();
     System.out.println(expr.jjtAccept(v,null));
 
@@ -100,7 +100,7 @@ void multiplicativeExpression() :
 	unaryExpression()
 	(
 	 <MULTIPLY> unaryExpression()#MultiplyExpr(2)
-	 |<DIVIDE> unaryExpression()#DivideExpr(2)
+	 | <DIVIDE> unaryExpression()#DivideExpr(2)
 	)*
 }
 void unaryExpression() :
