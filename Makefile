@@ -3,27 +3,27 @@
 all: 
 	javacc
 
-# Simple Example 1
-ci: ci_treegen ci_gen ci_comp ci_run
+# Tiny Example 1
+te1: te1_treegen te1_gen te1_comp te1_run
 
-ci_treegen: CalcInterpreter/Expr.jjt
-	jjtree CalcInterpreter/Expr.jjt
+te1_treegen: BaseFiles/Expr.jjt
+	jjtree BaseFiles/Expr.jjt
 
-ci_gen: CalcInterpreter/Generated/Expr.jj
-	javacc CalcInterpreter/Generated/Expr.jj
-	cp CalcInterpreter/BaseNode.java CalcInterpreter/Generated/BaseNode.java
-	cp CalcInterpreter/ExpressionVisitor.java CalcInterpreter/Generated/ExpressionVisitor.java
+te1_gen: Generated/Expr.jj
+	javacc Generated/Expr.jj
+	cp BaseFiles/BaseNode.java Generated/BaseNode.java
+	cp BaseFiles/ExpressionVisitor.java Generated/ExpressionVisitor.java
 
-ci_comp:
-	javac -d CalcInterpreter/Compiled CalcInterpreter/Generated/*.java
+te1_comp:
+	javac -d Compiled Generated/*.java
 
-ci_run: CalcInterpreter/Input/input.fakeExt
-	java -cp CalcInterpreter/Compiled ExpressionParser < CalcInterpreter/Input/input.fakeExt
+te1_run: Input/te1.f23
+	java -cp Compiled ExpressionParser < Input/te1.f23
 
-ci_clean: 
+te1_clean: 
 	rm -f CalcInterpreter/Generated/*
 	rm -f CalcInterpreter/Compiled/*
 
-clean: ex1_clean ci_clean
+clean: te1_clean
 
-.phony: clean ex1_clean ci_clean
+.phony: clean te1_clean
