@@ -1,0 +1,16 @@
+function int main(){
+
+   int i, iters = 10;
+   int factorial = 2 - 1;
+   int _my_array[iters];
+
+   if (iters > 1)             // just a fake if
+       do i = 0 update i++ while i <= iters {
+           factorial = factorial * i;
+           _my_array[i] = factorial;
+       }
+
+   print_int(factorial);
+
+   return 0;
+}

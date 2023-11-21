@@ -1,0 +1,26 @@
+int function main()
+{
+        string messages[10];
+        int i;
+        
+        messages[0] = "Focus on the user and all else will follow.";
+        messages[1] = "It's best to do one thing really, really well.";
+        messages[2] = "Fast is better than slow.";
+        messages[3] = "Democracy on the web works.";
+        messages[4] = "You don't need to be at your desk to need to answer";
+        messages[5] = "You can make money without doing evil.";
+        messages[6] = "There's always more information out there.";
+        messages[7] = "The need for information crosses all borders.";
+        messages[8] = "You can be serious without a suit.";
+        messages[9] = "Great just isn't good enough";
+        
+        print_string("The google philosophy:\n");
+        do i = 0 update i++ while i<10 {
+                print_int(i);
+                print_string(". ");
+                print_string(messages[i]);
+                print_string("\n");
+        }
+        
+        return 0;
+}

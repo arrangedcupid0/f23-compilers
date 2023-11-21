@@ -1,0 +1,33 @@
+function int linearSearch( int arr[ ], first, last, key)
+{
+    int i;
+    do i = 0 update i++ while i < last {
+    if (arr[i] == key)
+        return i;
+    }
+    return -1
+}
+function int main()
+{
+    int index;
+    int last = 10;
+    int key;
+    dynamic int arr[last];
+
+    do int i =0 update i while(i < last)
+    {
+        arr[i] = i;
+    }
+    print_string("Enter key to search");
+    read_int(key);
+    index = linearSearch(arr, 0, last,key);
+    if(index > -1)
+    {
+        print_string("Element found in index");
+        print_int(index);
+    }
+    else
+    {
+        print_string("Element not found");
+    }
+}

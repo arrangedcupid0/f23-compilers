@@ -1,0 +1,34 @@
+function void main()
+{
+    int i = 0;
+    int x[20,20], int y[20][20]; 
+    do i =0 update i++ while(i<20)
+    {
+        do j =0 update j++ while(j<20)
+        {
+            x[i][j] = i;
+
+            y[i][j] = i + 10;
+        }
+
+    }
+    multiply ( x,y,20);
+}
+
+function /* return type??*/    multiply(int a[],b[],size)
+{
+    int i = 0, j=0, k=0;
+    int ans[20][20]; // can this be int ans[size][size]; ??
+    do i =0 update i++ while(i< size)
+    {
+        do j =0 update j++ while(j< size)
+        {
+            do k =0 update k++ while(k< size)
+            {
+                ans[i][j] = ans[i][j] +  x[j][k] * y[k][j];
+            }
+        }
+    }
+    return /* ans  ?? */
+} 
+

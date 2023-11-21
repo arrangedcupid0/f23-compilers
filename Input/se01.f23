@@ -1,0 +1,10 @@
+function int main()
+{
+    int a;
+    double b;
+    a=10*10;
+    b=10.0;
+    b=b+11.0;
+    print_double(b);
+    return 1;
+}

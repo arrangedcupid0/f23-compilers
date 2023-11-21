@@ -1,0 +1,34 @@
+class Human{
+        string name;
+        int ssn;
+        
+        Initialize(string p_name = "UNKNOWN", int p_ssn = 999999999){
+                name = p_name;
+                ssn = p_ssn;
+                allocate dynamic;
+        
+        };
+        
+        Finalize(){
+                free dynamic;
+                free class;
+        }
+        
+        procedure hello(){
+                print_string("Hello ");
+                print_string(name);
+                print_string(" ");
+                print_int(ssn);
+                print_string("\n");
+        };
+};
+
+function int main(){
+        // I would prefer something like:
+        // Human pete = Human("Pete", 123456789);
+        
+        allocate class person("Pete", 123456789) pete;
+
+        pete#hello();
+
+}

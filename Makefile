@@ -3,23 +3,7 @@
 all: 
 	javacc
 
-# Example1
-ex1: ex1_gen ex1_comp ex1_run
-
-ex1_gen: Example1/Example1.jj
-	javacc Example1/Example1.jj
-
-ex1_comp:
-	javac -d Example1/Compiled Example1/Generated/*.java
-
-ex1_run: Example1/Input/input.fakeExt
-	java -cp Example1/Compiled Example1 < Example1/Input/input.fakeExt
-
-ex1_clean: 
-	rm -f Example1/Generated/*
-	rm -f Example1/Compiled/*
-
-# CalcInterpreter
+# Simple Example 1
 ci: ci_treegen ci_gen ci_comp ci_run
 
 ci_treegen: CalcInterpreter/Expr.jjt

@@ -1,0 +1,23 @@
+function int main()
+{
+    int action;
+    double amount;
+
+    print_string(" 1. deposit \n");
+    print_string(" 2. withdrawl \n");
+    get_int(action);
+
+    print_string( NextStep(action) );
+
+    return 0;
+}
+
+function string NextStep(int action;)
+{
+    if (action == 1)
+        return ("you are about to deposit money to your account\n");
+    else if (action ==2)
+        return ("you are about to withdraw money from your account\n");
+    else return ("Wrong action\n");
+
+}

@@ -1,0 +1,12 @@
+int function compare(int x) 
+{
+        in y=5
+        return x+y;
+}
+function int main()
+{
+        if(compare(3)>10)
+        {
+                print_string ( "I have no shame." );
+        }
+}

@@ -1,0 +1,16 @@
+// implement the Newton's iteration 
+int main(){   
+ double xn,fn,df,en;
+ double r2=2,x02=1/sqrt(2.0); 
+ fn=f2(x02);
+ for(int i=1;i<=40;i++)
+    {df=f2d(x02);
+     en=fn/df;   //empirical error |en|
+     xn=x02-en; 
+     fn=f2(xn);
+     x02=xn;}
+  return 0;
+}
+// function to evaluate f(x),f'(x)
+double f2(double x){return(exp(-x*x)-x);}
+double f2d(double x){return(-2*x*exp(-x*x)-1);}

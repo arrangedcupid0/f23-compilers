@@ -1,0 +1,63 @@
+//Horner Evaluation
+
+function int main(){
+
+        int total = 0;
+        int x = 0;
+        int coefficient = 1;
+
+        //request user to enter value of x for polynomial at given x
+        print_string("Please enter value of "x" for polynomial at given x: ")
+
+        //enter value of given x for polynomial
+        get_int(x);
+
+        //create dynamic array to hold coefficient values
+        pointer int coefficientVector;
+        coeffiecientVector = allocate int[x+1];
+        int ctr = 0;
+
+        do while ctr < x {
+                //request user to enter array of integers
+                print_string("Please enter coefficients of the polynomial: ");
+
+                //enter value in the array
+                get_int(coefficient);
+                coefficientVector[ctr] = coefficient;
+        
+                //increment index counter
+                ctr++;
+
+        }//end do loop
+
+        //call Horner Evaluation Function
+        int sum = 0;
+        sum = hornerEval(coefficientVector,x);
+        
+        //print to results to screen
+        print_string("Results is ");
+        print_int(sum);
+
+        free coefficientVector;
+        
+        return 0;
+
+}//end main function
+
+//**************Function***************
+
+function int hornerEval(int a[], int index){
+
+        int total = 0;
+
+        int a[index + 1];
+        
+        int i = index;
+    
+        do while index > 0 {
+                total = total * i + a[index];
+        }//end do loop
+
+        return (total);
+
+}//end hornerEval function
