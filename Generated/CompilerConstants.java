@@ -15,25 +15,31 @@ public interface CompilerConstants {
   /** RegularExpression Id. */
   int K_PRINT_INTEGER = 8;
   /** RegularExpression Id. */
-  int K_INTEGER = 9;
+  int K_PRINT_STRING = 9;
   /** RegularExpression Id. */
-  int K_ASSIGN = 10;
+  int K_PRINT_DOUBLE = 10;
   /** RegularExpression Id. */
-  int K_LCURLY = 11;
+  int K_INTEGER = 11;
   /** RegularExpression Id. */
-  int K_RCURLY = 12;
+  int K_ASSIGN = 12;
   /** RegularExpression Id. */
-  int K_LPAREN = 13;
+  int K_LCURLY = 13;
   /** RegularExpression Id. */
-  int K_RPAREN = 14;
+  int K_RCURLY = 14;
   /** RegularExpression Id. */
-  int K_SEMI = 15;
+  int K_LPAREN = 15;
   /** RegularExpression Id. */
-  int IDENTIFIER = 16;
+  int K_RPAREN = 16;
   /** RegularExpression Id. */
-  int ICONSTANT = 17;
+  int K_SEMI = 17;
   /** RegularExpression Id. */
-  int DCONSTANT = 18;
+  int IDENTIFIER = 18;
+  /** RegularExpression Id. */
+  int ICONSTANT = 19;
+  /** RegularExpression Id. */
+  int SCONSTANT = 20;
+  /** RegularExpression Id. */
+  int DCONSTANT = 21;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -49,6 +55,8 @@ public interface CompilerConstants {
     "\"program\"",
     "\"function\"",
     "\"print_integer\"",
+    "\"print_string\"",
+    "\"print_double\"",
     "\"integer\"",
     "\":=\"",
     "\"{\"",
@@ -58,6 +66,7 @@ public interface CompilerConstants {
     "\";\"",
     "<IDENTIFIER>",
     "<ICONSTANT>",
+    "<SCONSTANT>",
     "<DCONSTANT>",
   };
 

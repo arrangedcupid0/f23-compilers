@@ -17,7 +17,6 @@ public class Compiler {
     ASTprogram expr=parser.program();
     //SymbolTable v=new SymbolTable();
     //System.out.println(expr.jjtAccept(v,null));
-
   }
 }
 
@@ -32,13 +31,13 @@ SKIP :
 	|"\f"
 }
 
-
-
 TOKEN:
 {
 		<K_PROGRAM: 		"program" >
 	|	<K_FUNCTION: 		"function">
 	|	<K_PRINT_INTEGER: 	"print_integer">
+	|	<K_PRINT_STRING:	"print_string">
+	|	<K_PRINT_DOUBLE:	"print_double">
 	|	<K_INTEGER: 		"integer">
 	|	<K_ASSIGN: 			":=">
 	|	<K_LCURLY: 			"{">
@@ -50,8 +49,9 @@ TOKEN:
 
 TOKEN : {
 	   <IDENTIFIER: (["_","a"-"z","A"-"Z","$"]) (["_","a"-"z","A"-"Z","0"-"9","$"])*>
-	|  <ICONSTANT: (["0"-"9"])+>
-	|  <DCONSTANT: (["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])+)? (["e","E"] (["+","-"])? (["0"-"9"])*)?>
+	|  <ICONSTANT: 	(["0"-"9"])+>
+	|  <SCONSTANT: 	"\"" (~["\"","\n"])* "\"">
+	|  <DCONSTANT: 	(["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])+)? (["e","E"] (["+","-"])? (["0"-"9"])*)?>
 }
 
 ASTprogram program() #program:
@@ -77,8 +77,17 @@ void statement() :
 
 	| <IDENTIFIER> <K_ASSIGN> <ICONSTANT> <K_SEMI> {System.out.println("Assigned a value");}
 
-	| <K_PRINT_INTEGER> <K_LPAREN> <IDENTIFIER> <K_RPAREN> <K_SEMI> {System.out.println("Printing an integer");}
+	| print_statement() {System.out.println("Printed a statement");}
 
-	
 }
 
+void print_statement() :
+{ /*Variable Declrations*/ }
+{
+	<K_PRINT_INTEGER> 	<K_LPAREN> (<IDENTIFIER> | <ICONSTANT>) <K_RPAREN> <K_SEMI> {System.out.println("Printing an integer variable");}
+
+	| <K_PRINT_DOUBLE> 	<K_LPAREN> (<IDENTIFIER> | <DCONSTANT>) <K_RPAREN> <K_SEMI> {System.out.println("Printing a double variable");}
+
+	| <K_PRINT_STRING> 	<K_LPAREN> (<IDENTIFIER> | <SCONSTANT>) <K_RPAREN> <K_SEMI> {System.out.println("Printing a string variable");}
+
+}

@@ -16,12 +16,12 @@ te1_gen: Generated/te1.jj
 te1_comp:
 	javac -d Compiled Generated/*.java
 
-te1_run: Input/te1.f23
-	java -cp Compiled Compiler < Input/te1.f23
+te1_run: Input/te2.f23
+	java -cp Compiled Compiler < Input/te2.f23
 
 te1_clean: 
-	rm -f CalcInterpreter/Generated/*
-	rm -f CalcInterpreter/Compiled/*
+	rm -Force .\Generated\*
+	rm -Force .\Compiled\*
 
 clean: te1_clean
 
