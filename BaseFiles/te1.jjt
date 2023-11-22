@@ -14,9 +14,9 @@ public class Compiler {
   public static void main(String args[]) throws Exception {
     //Compiler parser = new Compiler(new java.io.FileReader(args[0]));
     Compiler parser = new Compiler(System.in);
-    ASTprogram expr=parser.program();
-    //SymbolTable v=new SymbolTable();
-    //System.out.println(expr.jjtAccept(v,null));
+    ASTProgram expr=parser.program();
+    TreeWalk v=new TreeWalk();
+    System.out.println(expr.jjtAccept(v,null));
   }
 }
 
@@ -54,7 +54,7 @@ TOKEN : {
 	|  <DCONSTANT: 	(["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])+)? (["e","E"] (["+","-"])? (["0"-"9"])*)?>
 }
 
-ASTprogram program() #program:
+ASTProgram program() #Program:
 { /*Variable Declrations*/ }
 {
   <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (function())+ <K_RCURLY>
@@ -63,31 +63,74 @@ ASTprogram program() #program:
 	}
 }
 
-void function() #function:
-{ /*Variable Declrations*/ }
+void function() #Function:
+{ Token t; }
 {
-	<K_FUNCTION> <K_INTEGER> <IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> (statement())+ <K_RCURLY> {System.out.println("Matched Function");}
+	<K_FUNCTION> t=<K_INTEGER> <IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> (statement())+ <K_RCURLY> 
+	{
+		jjtThis.data.put("type",t.image);
+		System.out.println("Matched Function");
+	}
 	
 }
 
-void statement() :
+void statement() #Statement :
 { /*Variable Declrations*/ }
 {
-	<K_INTEGER> <IDENTIFIER> <K_SEMI> {System.out.println("Declared integer");}
+	varDeclare() {
+		jjtThis.data.put("type","Variable Declaration");
+	}
 
-	| <IDENTIFIER> <K_ASSIGN> <ICONSTANT> <K_SEMI> {System.out.println("Assigned a value");}
+	| varAssign() {
+		jjtThis.data.put("type","Variable Assignment");
+	}
 
-	| print_statement() {System.out.println("Printed a statement");}
+	| print_statement() {
+		jjtThis.data.put("type","Print_Statement");
+	}
 
 }
 
-void print_statement() :
-{ /*Variable Declrations*/ }
+void varDeclare() #VariableDeclare :
+{ Token t; }
 {
-	<K_PRINT_INTEGER> 	<K_LPAREN> (<IDENTIFIER> | <ICONSTANT>) <K_RPAREN> <K_SEMI> {System.out.println("Printing an integer variable");}
+	<K_INTEGER> t=<IDENTIFIER> <K_SEMI> {
+		jjtThis.data.put("type","INTEGER");
+		jjtThis.data.put("value",t.image);
+		System.out.println("Declared integer");
+	}
+}
 
-	| <K_PRINT_DOUBLE> 	<K_LPAREN> (<IDENTIFIER> | <DCONSTANT>) <K_RPAREN> <K_SEMI> {System.out.println("Printing a double variable");}
+void varAssign() #VariableAssignment :
+{ Token val; Token var;}
+{
+	var=<IDENTIFIER> <K_ASSIGN> val=<ICONSTANT> <K_SEMI> {
+		jjtThis.data.put("type","INTEGER");
+		jjtThis.data.put("value",val.image);
+		jjtThis.data.put("variable",var.image);
+		
+	}
+}
 
-	| <K_PRINT_STRING> 	<K_LPAREN> (<IDENTIFIER> | <SCONSTANT>) <K_RPAREN> <K_SEMI> {System.out.println("Printing a string variable");}
+void print_statement() #PrintStatement :
+{ Token t; }
+{
+	<K_PRINT_INTEGER> <K_LPAREN> (t=<IDENTIFIER> | t=<ICONSTANT>) <K_RPAREN> <K_SEMI> {
+		jjtThis.data.put("PType","INTEGER");
+		jjtThis.data.put("value",t.image);
+		System.out.println("Printing an integer variable");
+	}
+
+	| <K_PRINT_DOUBLE> <K_LPAREN> (t=<IDENTIFIER> | t=<DCONSTANT>) <K_RPAREN> <K_SEMI> {
+		jjtThis.data.put("PType","DOUBLE");
+		jjtThis.data.put("value",t.image);
+		System.out.println("Printing a double variable");
+	}
+
+	| <K_PRINT_STRING> <K_LPAREN> (t=<IDENTIFIER> | t=<SCONSTANT>) <K_RPAREN> <K_SEMI> {
+		jjtThis.data.put("PType","STRING");
+		jjtThis.data.put("value",t.image);
+		System.out.println("Printing a string variable");
+	}
 
 }
