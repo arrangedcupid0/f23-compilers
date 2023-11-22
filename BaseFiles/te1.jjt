@@ -14,9 +14,9 @@ public class Compiler {
   public static void main(String args[]) throws Exception {
     //Compiler parser = new Compiler(new java.io.FileReader(args[0]));
     Compiler parser = new Compiler(System.in);
-    ASTprogram expr=parser.start();
-    SymbolTable v=new SymbolTable();
-    System.out.println(expr.jjtAccept(v,null));
+    ASTprogram expr=parser.program();
+    //SymbolTable v=new SymbolTable();
+    //System.out.println(expr.jjtAccept(v,null));
 
   }
 }
@@ -32,6 +32,8 @@ SKIP :
 	|"\f"
 }
 
+
+
 TOKEN:
 {
 		<K_PROGRAM: 		"program" >
@@ -44,82 +46,39 @@ TOKEN:
 	| 	<K_LPAREN: 			"(">
 	| 	<K_RPAREN: 			")">
 	| 	<K_SEMI: 			";">
-	|	<ICONSTANT: 		[0-9]+>	
-	|	<IDENTIFIER: 		[_a-zA-Z$][_a-zA-Z0-9$]*>
+}
+
+TOKEN : {
+	   <IDENTIFIER: (["_","a"-"z","A"-"Z","$"]) (["_","a"-"z","A"-"Z","0"-"9","$"])*>
+	|  <ICONSTANT: (["0"-"9"])+>
+	|  <DCONSTANT: (["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])+)? (["e","E"] (["+","-"])? (["0"-"9"])*)?>
 }
 
 ASTprogram program() #program:
 { /*Variable Declrations*/ }
 {
   <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (function())+ <K_RCURLY>
-  { return jjtThis; }
+  { System.out.println("Match program");
+	return jjtThis; 
+	}
 }
 
 void function() #function:
 { /*Variable Declrations*/ }
 {
-	<K_FUNCTION> <K_INTEGER> <IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> (statement())+ <K_RCURLY>
-	//identifier()"="expression()";"
+	<K_FUNCTION> <K_INTEGER> <IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> (statement())+ <K_RCURLY> {System.out.println("Matched Function");}
+	
 }
 
 void statement() :
 { /*Variable Declrations*/ }
 {
+	<K_INTEGER> <IDENTIFIER> <K_SEMI> {System.out.println("Declared integer");}
 
+	| <IDENTIFIER> <K_ASSIGN> <ICONSTANT> <K_SEMI> {System.out.println("Assigned a value");}
+
+	| <K_PRINT_INTEGER> <K_LPAREN> <IDENTIFIER> <K_RPAREN> <K_SEMI> {System.out.println("Printing an integer");}
+
+	
 }
 
-
-
-void identifier() :
-{/*Variable Declrations*/}
-{
-	<VARIABLE>
-	{
-		jjtThis.data.put("name",token.image);
-	}#Variable
-}
-
-void expression():
-{}
-{
-	additiveExpression()
-}
-
-void additiveExpression() :
-{}
-{
-	multiplicativeExpression()
-	(<PLUS> multiplicativeExpression()#AddExpr(2)
-	 | <MINUS> multiplicativeExpression()#SubractExpr(2)
-	)*
-}
-
-void multiplicativeExpression() :
-{}
-{
-	unaryExpression()
-	(
-	 <MULTIPLY> unaryExpression()#MultiplyExpr(2)
-	 | <DIVIDE> unaryExpression()#DivideExpr(2)
-	)*
-}
-void unaryExpression() :
-{}
-{
-	<MINUS> numberExpression()#NegateExpr(1)|
-	numberExpression()
-}
-
-void numberExpression() :
-{
-}
-{
-	<NUMBER>
-	{ 
-		jjtThis.data.put("value",new Integer(Integer.parseInt(token.image)));
-	}#Number
-	| <VARIABLE>
-	{
-		jjtThis.data.put("name",token.image);
-	}#VariableValue
-}
