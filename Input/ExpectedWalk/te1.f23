@@ -1,0 +1,39 @@
+++++++++++++++++++++++++++++++++++++++++++++++++
+Walking Through the Parse Tree
+++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+** Node 1: Program
+-----
+-----
+** Node 2: Function
+**** Returns integer
+-----
+-----
+** Node 3: Statement
+**** Statement Type: Variable Declaration
+-----
+-----
+** Node 4: Variable Declareation
+**** Type: INTEGER
+**** Variable Name: i
+-----
+-----
+** Node 5: Statement
+**** Statement Type: Variable Assignment
+-----
+-----
+** Node 6: Variable Assignment
+**** Type: INTEGER
+**** Variable Name: i
+**** Variable Value: 441
+-----
+-----
+** Node 7: Statement
+**** Statement Type: Print_Statement
+-----
+-----
+** Node 8: PrintStatement
+**** Print Type: INTEGER
+**** Print Variable/Value: i
+-----
+++++++++++++++++++++++++++++++++++++++++++++++++

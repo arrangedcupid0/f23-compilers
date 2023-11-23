@@ -1,0 +1,22 @@
+++++++++++++++++++++++++++++++++++++++++++++++++
+Walking Through the Parse Tree
+++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+** Node 1: Program
+-----
+-----
+** Node 2: Function
+**** Returns integer
+-----
+-----
+** Node 3: Statement
+**** Statement Type: Print_Statement
+-----
+-----
+** Node 4: PrintStatement
+**** Print Type: STRING
+**** Print Variable/Value: "Hello\n"
+-----
+++++++++++++++++++++++++++++++++++++++++++++++++
+Parse Tree Walk Complete
+++++++++++++++++++++++++++++++++++++++++++++++++
