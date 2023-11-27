@@ -44,6 +44,6 @@ Additionally it copies the TreeWalk.java and SymbolTable.java files to the "Gene
 
 - Inside the BaseFiles, the TreeWalk.java file is a Visitor implementation to the nodes after the Parser is finished generating the tree. TreeWalk.java will handle printing out information when it walks through the tree.
 
-- Inside the BaseFiles, the SymbolTable.java file is not yet implemented, please ignore this file for now.
+- SymbolFile.Java file has been removed iin this iteration due to some trouble with class inheritance. instead the Symbol table implementation and methods are inside TreeWalk.java
 
 - Inside the BaseFiles, the te1.jjt file is the JavaCC tree file on which everything else will generate. please see https://github.com/javacc/javacc/tree/master for documentation.
