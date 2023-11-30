@@ -64,11 +64,12 @@ ASTProgram program() #Program:
 }
 
 void function() #Function:
-{ Token t; }
+{ Token t; Token t2; }
 {
-	<K_FUNCTION> t=<K_INTEGER> <IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> (statement())+ <K_RCURLY> 
+	<K_FUNCTION> t=<K_INTEGER> t2=<IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> (statement())+ <K_RCURLY> 
 	{
 		jjtThis.data.put("type",t.image);
+		jjtThis.data.put("funcName",t2.image);
 		System.out.println("Matched Function");
 	}
 	

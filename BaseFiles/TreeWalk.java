@@ -1,11 +1,12 @@
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.io.FileWriter;
 
 public class TreeWalk implements CompilerVisitor {
 
     // ################## Variables ##################
     private int IDcounter = 0;
-
+    public String fileText;
     public HashMap<String, SymbolTableEntry> symbolTable = new HashMap<String, SymbolTableEntry>();
 
     // ################## Symbol Table Methods ##################
@@ -80,15 +81,28 @@ public class TreeWalk implements CompilerVisitor {
 
     public Object visit(ASTFunction node, Object data) {
         int ID = GetID();
+        switch (node.data.get("type")) {
+            case "integer":
+                fileText += "int ";
+                break;
+            case "double":
+                fileText += "double ";
+                break;
+            default:
+                fileText += "void ";
+        }
 
+        fileText += node.data.get("funcName") + "()\r\n" + "{\r\n";
+                
         // Print information about node
         System.out.println("-----");
         System.out.println("** Node " + ID + ": Function");
         System.out.println("**** Returns " + node.data.get("type"));
         System.out.println("-----");
-
+        
         // Iterate through children nodes
         node.childrenAccept(this, data);
+        fileText += "}";
         // Return to parent node (or move to sibling node if exists)
         return null;
     }
@@ -112,6 +126,17 @@ public class TreeWalk implements CompilerVisitor {
         String VarID = (String) node.data.get("value");
         String VarType = (String) node.data.get("type");
         int lineOfDecl = (int) node.data.get("lineNo");
+        switch (VarType) {
+            case "integer":
+                fileText += "int ";
+                break;
+            case "double":
+                fileText += "double ";
+                break;
+            default:
+        }
+        fileText += VarID + ";";
+
         // Print information about node
         System.out.println("-----");
         System.out.println("** Node " + ID + ": Variable Declareation");
