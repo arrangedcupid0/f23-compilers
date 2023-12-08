@@ -18,13 +18,16 @@ run: run_te1 run_te2
 
 run_te1: Input/te1.f23
 	java -cp Compiled Compiler < Input/te1.f23
+	ren .\Output\filename.txt te1.h
 
 run_te2: Input/te2.f23
 	java -cp Compiled Compiler < Input/te2.f23
+	ren .\Output\filename.txt te2.h
 
 clean: 
 	del /q .\Generated\*
 	del /q .\Compiled\*
+	del /q .\Output\*.h
 
 # help and test javacc exists
 javacc: 

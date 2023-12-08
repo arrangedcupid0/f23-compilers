@@ -33,41 +33,98 @@ SKIP :
 
 TOKEN:
 {
-		<K_PROGRAM: 		"program" >
-	|	<K_FUNCTION: 		"function">
-	|	<K_PRINT_INTEGER: 	"print_integer">
-	|	<K_PRINT_STRING:	"print_string">
-	|	<K_PRINT_DOUBLE:	"print_double">
+		<K_DO: 				"do" >
+	|	<K_DOUBLE: 			"double">
+	|	<K_ELSE: 			"else">
+	|	<K_EXIT:			"exit">
+	|	<K_FUNCTION:		"function">
+	|	<K_IF: 				"if">
 	|	<K_INTEGER: 		"integer">
+	|	<K_PRINT_DOUBLE: 	"print_double">
+	|	<K_PRINT_INTEGER: 	"print_integer">
+	|	<K_PRINT_STRING: 	"print_string">
+	|	<K_PROCEDURE: 		"procedure">
+	|	<K_PROGRAM: 		"program">
+	|	<K_READ_DOUBLE: 	"read_double">
+	|	<K_READ_INTEGER: 	"read_integer">
+	|	<K_READ_STRING: 	"read_string">
+	|	<K_RETURN: 			"return">
+	|	<K_STRING: 			"string">
+	|	<K_THEN: 			"then">
+	|	<K_WHILE: 			"while">
 	|	<K_ASSIGN: 			":=">
+	|	<K_ASSIGN_PLUS: 		"+=">
+	|	<K_ASSIGN_MINUS: 		"-=">
+	|	<K_ASSIGN_MULTIPLY: 	"*=">
+	|	<K_ASSIGN_DIVIDE: 	"/=">
+	|	<K_ASSIGN_MOD: 		"%=">
+	|	<K_COMMA: 			",">
+	|	<K_COMMENT: 			"//">
+	|	<K_DAND: 				"&&">
+	|	<K_DIVIDE: 			"/">
+	|	<K_DOR: 				"||">
+	|	<K_DEQ: 				"==">
+	|	<K_GEQ: 				">=">
+	|	<K_GT: 				">">
+	|	<K_LBRACKET: 			"[">
+	|	<K_LEQ: 				"<=">
 	|	<K_LCURLY: 			"{">
-	|	<K_RCURLY: 			"}">
-	| 	<K_LPAREN: 			"(">
+	|	<K_LPAREN: 			"(">
+	|	<K_LT: 				"<">
+	|	<K_MINUS: 			"-">
+	|	<K_DECREMENT: 		"--">
+	|	<K_MOD: 				"%">
+	|	<K_MULTIPLY: 			"*">
+	|	<K_NE: 				"!=">
+	|	<K_NOT: 				"!">
+	|	<K_PERIOD: 			".">
+	|	<K_PLUS: 				"+">
+	| 	<K_INCREMENT: 		"++">
+	| 	<K_RBRACKET: 			"]">
+	| 	<K_RCURLY: 			"}">
 	| 	<K_RPAREN: 			")">
-	| 	<K_SEMI: 			";">
+	| 	<K_SEMI: 				";">
 }
 
 TOKEN : {
 	   <IDENTIFIER: (["_","a"-"z","A"-"Z","$"]) (["_","a"-"z","A"-"Z","0"-"9","$"])*>
 	|  <ICONSTANT: 	(["0"-"9"])+>
 	|  <SCONSTANT: 	"\"" (~["\"","\n"])* "\"">
-	|  <DCONSTANT: 	(["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])+)? (["e","E"] (["+","-"])? (["0"-"9"])*)?>
+	|  <DCONSTANT: 	(["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])+)? (["d"] (["+","-"])? (["0"-"9"])*)?>
 }
 
 ASTProgram program() #Program:
-{ /*Variable Declrations*/ }
+{ /*Variable Declarations*/ }
 {
-  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (function())+ <K_RCURLY>
-  { System.out.println("Match program");
-	return jjtThis; 
+  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> programBody() <K_RCURLY>
+  	{ 
+		System.out.println("Match program");
+		return jjtThis; 
+	}
+}
+
+void programBody() #ProgramBody:
+{/*Variable Declarations*/}
+{
+	(function() | procedure())*
+	{
+		
 	}
 }
 
 void function() #Function:
 { Token t; Token t2; }
 {
-	<K_FUNCTION> t=<K_INTEGER> t2=<IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> (statement())+ <K_RCURLY> 
+	<K_FUNCTION> t=type() t2=<IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> body() <K_RCURLY> 
 	{
+		jjtThis.data.put("Param","false");
+		jjtThis.data.put("type",t.image);
+		jjtThis.data.put("funcName",t2.image);
+		System.out.println("Matched Function");
+	}
+	| <K_FUNCTION> t=type() t2=<IDENTIFIER> <K_LPAREN> parameterList() <K_RPAREN> <K_LCURLY> body() <K_RCURLY> 
+	{
+		jjtThis.data.put("Param","true");
 		jjtThis.data.put("type",t.image);
 		jjtThis.data.put("funcName",t2.image);
 		System.out.println("Matched Function");
@@ -75,68 +132,333 @@ void function() #Function:
 	
 }
 
-void statement() #Statement :
-{ /*Variable Declrations*/ }
+void type() #Type:
+{}
 {
-	varDeclare() {
-		jjtThis.data.put("type","Variable Declaration");
+	(<K_INTEGER> | <K_DOUBLE> | <K_STRING>)
+	{
+		
 	}
-
-	| varAssign() {
-		jjtThis.data.put("type","Variable Assignment");
-	}
-
-	| print_statement() {
-		jjtThis.data.put("type","Print_Statement");
-	}
-
 }
 
-void varDeclare() #VariableDeclare :
+void procedure() #Procedure:
+{/*Variable Declarations*/}
+{
+	LOOKAHEAD(4)
+	<K_PROCEDURE> <IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> body() <K_RCURLY>
+	{
+		
+	}
+	| <K_PROCEDURE> <IDENTIFIER> <K_LPAREN> parameterList() <K_RPAREN> <K_LCURLY> body() <K_RCURLY>
+	{
+		
+	}
+}
+
+void parameterList() #ParameterList:
+{}
+{
+	parameter() (<K_COMMA> parameter())*
+	{
+
+	}
+}
+
+void parameter() #Parameter:
 { Token t; }
 {
-	<K_INTEGER> t=<IDENTIFIER> <K_SEMI> {
-		jjtThis.data.put("type","INTEGER");
+	<K_INTEGER> t=<IDENTIFIER> (<K_LBRACKET> <K_RBRACKET>)?{
+		jjtThis.data.put("type","INTEGERARRAY");
+		jjtThis.data.put("value",t.image);
+		jjtThis.data.put("lineNo",t.beginLine);
+		System.out.println("Declared integer");
+	}
+	| 
+	<K_DOUBLE> t=<IDENTIFIER> (<K_LBRACKET> <K_RBRACKET>)?{
+		jjtThis.data.put("type","DOUBLEARRAY");
+		jjtThis.data.put("value",t.image);
+		jjtThis.data.put("lineNo",t.beginLine);
+		System.out.println("Declared integer");
+	}
+	| 
+	<K_STRING> t=<IDENTIFIER> (<K_LBRACKET> <K_RBRACKET>)?{
+		jjtThis.data.put("type","STRINGARRAY");
 		jjtThis.data.put("value",t.image);
 		jjtThis.data.put("lineNo",t.beginLine);
 		System.out.println("Declared integer");
 	}
 }
 
-void varAssign() #VariableAssignment :
+void body() #Body :
+{/*Variable Declarations*/}
+{
+	(function() | procedure() | expression() | doLoop() | whileLoop() | ifThen())* 
+	{
+
+	}
+}
+
+void expression() #Expression :
+{ /*Variable Declrations*/ }
+{
+	LOOKAHEAD(declaration())
+	declaration() <K_SEMI>
+	{
+		jjtThis.data.put("type","Variable Declaration");
+	}
+	| LOOKAHEAD(assignment())
+	assignment() <K_SEMI> 
+	{
+		jjtThis.data.put("type","Variable Assignment");
+	}
+	| LOOKAHEAD(functionCall())
+	functionCall() <K_SEMI>
+	{
+
+	}
+	| <K_RETURN> value() <K_SEMI> 
+	{
+
+	}
+}
+
+void declaration() #Declaration :
+{ Token t; }
+{
+	LOOKAHEAD(4)
+	<K_INTEGER> t=<IDENTIFIER> <K_LBRACKET> <K_RBRACKET>
+	{
+		jjtThis.data.put("type","INTEGERARRAY");
+		jjtThis.data.put("value",t.image);
+		jjtThis.data.put("lineNo",t.beginLine);
+		System.out.println("Declared integer");
+	}
+	| LOOKAHEAD(4)
+	<K_DOUBLE> t=<IDENTIFIER> <K_LBRACKET> <K_RBRACKET>
+	{
+		jjtThis.data.put("type","DOUBLEARRAY");
+		jjtThis.data.put("value",t.image);
+		jjtThis.data.put("lineNo",t.beginLine);
+		System.out.println("Declared integer");
+	}
+	| LOOKAHEAD(4)
+	<K_STRING> t=<IDENTIFIER> <K_LBRACKET> <K_RBRACKET>
+	{
+		jjtThis.data.put("type","STRINGARRAY");
+		jjtThis.data.put("value",t.image);
+		jjtThis.data.put("lineNo",t.beginLine);
+		System.out.println("Declared integer");
+	}
+	| <K_INTEGER> t=<IDENTIFIER> (<K_ASSIGN> value())?
+	{
+		jjtThis.data.put("type","INTEGER");
+		jjtThis.data.put("value",t.image);
+		jjtThis.data.put("lineNo",t.beginLine);
+		System.out.println("Declared integer");
+	}
+	| <K_DOUBLE> t=<IDENTIFIER> (<K_ASSIGN> value())?
+	{
+		jjtThis.data.put("type","DOUBLE");
+		jjtThis.data.put("value",t.image);
+		jjtThis.data.put("lineNo",t.beginLine);
+		System.out.println("Declared integer");
+	}
+	| <K_STRING> t=<IDENTIFIER> (<K_ASSIGN> value())?
+	{
+		jjtThis.data.put("type","STRING");
+		jjtThis.data.put("value",t.image);
+		jjtThis.data.put("lineNo",t.beginLine);
+		System.out.println("Declared integer");
+	}
+}
+
+void assignment() #Assignment :
 { Token val; Token var;}
 {
-	var=<IDENTIFIER> <K_ASSIGN> val=<ICONSTANT> <K_SEMI> {
-		jjtThis.data.put("type","INTEGER");
-		jjtThis.data.put("value",val.image);
-		jjtThis.data.put("variable",var.image);
-		jjtThis.data.put("lineNo",val.beginLine);
+	LOOKAHEAD(2) <IDENTIFIER> assignOperator() value() {}
+	| LOOKAHEAD(2) <IDENTIFIER> <K_INCREMENT> {}
+	| LOOKAHEAD(2) <IDENTIFIER> <K_DECREMENT> {}
+
+}
+
+void assignOperator() #AssignOperator :
+{ Token t;}
+{
+	t=<K_ASSIGN> {}
+	| t=<K_ASSIGN_PLUS> {}
+	| t=<K_ASSIGN_MINUS> {}
+	| t=<K_ASSIGN_MULTIPLY> {}
+	| t=<K_ASSIGN_DIVIDE> {}
+	| t=<K_ASSIGN_MOD> {}
+}
+
+void functionCall() #FunctionCall :
+{ /*Variable Declrations*/ }
+{
+	(printCall() | readCall() | definedCall())
+	{
+
+	}
+}
+
+void printCall() #PrintCall :
+{ /*Variable Declrations*/ }
+{
+	<K_PRINT_INTEGER> <K_LPAREN> value() <K_RPAREN> 
+	{
+
+	}
+	| <K_PRINT_DOUBLE> <K_LPAREN> value() <K_RPAREN> 
+	{
+
+	}
+	| <K_PRINT_STRING> <K_LPAREN> value() <K_RPAREN> 
+	{
 		
 	}
 }
 
-void print_statement() #PrintStatement :
-{ Token t; }
+void readCall() #ReadCall :
+{ /*Variable Declrations*/ }
 {
-	<K_PRINT_INTEGER> <K_LPAREN> (t=<IDENTIFIER> | t=<ICONSTANT>) <K_RPAREN> <K_SEMI> {
-		jjtThis.data.put("PType","INTEGER");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Printing an integer variable");
+	<K_READ_INTEGER> <K_LPAREN> value() <K_RPAREN>
+	{
+
+	}
+	| <K_READ_DOUBLE> <K_LPAREN> value() <K_RPAREN> 
+	{
+
+	}
+	| <K_READ_STRING> <K_LPAREN> value() <K_RPAREN> 
+	{
+		
+	}
+}
+
+void definedCall() #DefinedCall :
+{ /*Variable Declrations*/ }
+{
+	<IDENTIFIER> <K_LPAREN> <K_RPAREN> 
+	{
+
+	}
+	| <IDENTIFIER> <K_LPAREN> valueList() <K_RPAREN> 
+	{
+
+	}
+}
+
+void valueList() #ValueList :
+{}
+	value() (<K_COMMA> value())* 
+	{
+
 	}
 
-	| <K_PRINT_DOUBLE> <K_LPAREN> (t=<IDENTIFIER> | t=<DCONSTANT>) <K_RPAREN> <K_SEMI> {
-		jjtThis.data.put("PType","DOUBLE");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Printing a double variable");
-	}
 
-	| <K_PRINT_STRING> <K_LPAREN> (t=<IDENTIFIER> | t=<SCONSTANT>) <K_RPAREN> <K_SEMI> {
-		jjtThis.data.put("PType","STRING");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Printing a string variable");
-	}
+void value() #Value :
+{/* May need Lookaheads */}
+{
+	<K_LPAREN> value() <K_RPAREN> {}
+	| atomicValue()  {}
+	| definedCall() {}
+	| assignment() {}
+	| mathOperatorValue() {}
+}
 
+void atomicValue() #AtomicValue :
+{ Token t;}
+{
+	t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image);}
+	| t=<ICONSTANT> {jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image);}
+	| t=<DCONSTANT> {jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image);}
+	| t=<SCONSTANT> {jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image);}
+}
+
+void mathOperatorValue() #mathOperatorValue :
+{}
+{
+	value() mathOperator() value() {}
+}
+
+void statementBlock() #StatementBlock :
+{}
+{
+	expression() {}
+	|
+	<K_LCURLY> (expression())* <K_RCURLY> {}
+}
+
+void predicate() #Predicate :
+{}
+{
+	LOOKAHEAD("!" predicate()) 
+	<K_NOT> predicate() {}
+	| LOOKAHEAD(value() compareOperator() value()) 
+	value() compareOperator() value() {}
+	| LOOKAHEAD(predicate() connectiveOperator() predicate())
+	compoundPredicate() {}
+}
+
+void compoundPredicate() #CompundPredicate :
+{}
+{
+	predicate() connectiveOperator() predicate() {}
+}
+
+void connectiveOperator() #ConnectiveOperator :
+{ Token t;}
+{
+	t=<K_DAND> {}
+	| t=<K_DOR> {}
+}
+
+void compareOperator() #CompareOperator :
+{ Token t;}
+{
+	t=<K_DEQ> {}
+	| t=<K_NE> {}
+	| t=<K_GEQ> {}
+	| t=<K_GT> {}
+	| t=<K_LEQ> {}
+	| t=<K_LT> {}
+}
+
+void mathOperator() #MathOperator :
+{ Token t;}
+{
+	t=<K_PLUS> {}
+	| t=<K_MINUS> {}
+	| t=<K_MOD> {}
+	| t=<K_MULTIPLY> {}
+	| t=<K_DIVIDE> {}
+}
+
+void doLoop() #DoLoop :
+{ /*Variable Declarations*/ }
+{
+	<K_DO> <K_LPAREN> assignment() <K_SEMI> predicate() <K_SEMI> assignment() <K_SEMI> <K_RPAREN> statementBlock()
+	{
+		
+	}
+}
+
+void whileLoop() #WhileLoop :
+{ /*Variable Declrations*/ }
+{
+	<K_WHILE> <K_LPAREN> predicate() <K_RPAREN> statementBlock() 
+	{
+
+	}
+}
+
+void ifThen() #IfThen :
+{ /*Variable Declrations*/ }
+{
+	<K_IF> <K_LPAREN> predicate() <K_RPAREN> <K_THEN> statementBlock() 
+	(<K_ELSE> <K_IF> <K_LPAREN> predicate() <K_RPAREN> <K_THEN> statementBlock())* 
+	(<K_ELSE> statementBlock())?
+	{
+
+	}
 }

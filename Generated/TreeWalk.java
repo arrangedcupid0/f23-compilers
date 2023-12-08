@@ -131,8 +131,6 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTType node, Object data) {
         int ID = GetID();
 
-        //fileText = fileText + node.data.get("type") + " ";
-
         // Print information about node
         System.out.println("-----");
         System.out.println("** Node " + ID + ": Type");

@@ -1,0 +1,325 @@
+<COMMENT> ----------------------------------------------------------------------------
+<COMMENT>
+<COMMENT> This is the Fall 2023 target code for Compilers I<PERIOD> 
+<COMMENT>
+<COMMENT> Your compiler should be able to lex<COMMA>  parse<COMMA>  and generate code for the
+<COMMENT> entire file by the end of the course<PERIOD> 
+<COMMENT>
+<COMMENT> Written by: Craig C<PERIOD>  Douglas
+<COMMENT> Modification history:
+<COMMENT>      Fri Aug 18 08:12:42 MDT 2023
+<COMMENT>
+<COMMENT> ----------------------------------------------------------------------------
+
+
+<K_PROGRAM>  $two_grid_solver
+ <LCURLY>
+
+    <COMMENT> ------------------------------------------------------------------------
+    <COMMENT> Place a constant in every element of a vector<PERIOD> 
+    <COMMENT> ------------------------------------------------------------------------
+
+    <K_PROCEDURE> 
+         set_constant <LPAREN>
+            <K_DOUBLE>  dval<COMMA>                    <COMMENT> The constant value
+            <K_DOUBLE>  dsoln <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  s1     <COMMENT> Approximate solution
+                     <RPAREN> 
+     <LCURLY>
+        <K_INTEGER>  i <ASSIGN>  0<SEMI>                      <COMMENT> Loop variable
+
+       <K_WHILE>   <LPAREN> i <GEQ> 0 <DAND> i  <LEQ> s1 <RPAREN> 
+            dsoln <LBRACKET>i++<RBRACKET>  <ASSIGN>  dval<SEMI> 
+
+    <RCURLY>    <COMMENT> of set_constant
+
+
+    <COMMENT> ------------------------------------------------------------------------
+    <COMMENT> Print every element of a vector<COMMA>  one per line with the index<PERIOD> 
+    <COMMENT> ------------------------------------------------------------------------
+
+    <K_PROCEDURE> 
+         print_vector <LPAREN>
+           <K_STRING>   title<COMMA>                   <COMMENT> Identification of vector
+            <K_DOUBLE>  dsoln <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  s1     <COMMENT> Approximate solution
+                     <RPAREN> 
+     <LCURLY>
+        <K_INTEGER>  i<SEMI> 
+
+        <K_PRINT_STRING>  <LPAREN> "Vector: " <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "title" <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "\ni  value\n" <RPAREN> <SEMI> 
+        <K_DO>  <LPAREN> i <ASSIGN>  0<SEMI>  i  <LEQ> s1<SEMI>  i<INCREMENT> <RPAREN> 
+         <LCURLY>
+            print_<K_INTEGER>  <LPAREN> i <RPAREN> <SEMI> 
+            <K_PRINT_STRING>  <LPAREN> " " <RPAREN> <SEMI> 
+            <K_PRINT_DOUBLE>  <LPAREN> dsoln <LBRACKET>i<RBRACKET>  <RPAREN> <SEMI> 
+        <RCURLY>    
+        <K_PRINT_STRING>  <LPAREN> "--- End of vector\n" <RPAREN> <SEMI> 
+
+    <RCURLY>    <COMMENT> of print_vector
+
+
+    <COMMENT> ------------------------------------------------------------------------
+    <COMMENT> Calculate the little ell-infinity norm of the error in the solution<PERIOD> 
+    <COMMENT> ------------------------------------------------------------------------
+
+    <K_FUNCTION> 
+    <K_DOUBLE> error_norm <LPAREN>
+            <K_DOUBLE>  dsoln <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  s1         <COMMENT> Approximate solution
+                     <RPAREN> 
+     <LCURLY>
+        <K_INTEGER>  i <ASSIGN>  0<SEMI>                  <COMMENT> Loop variable
+        <K_DOUBLE>  asoln<SEMI>                   <COMMENT> abs <LPAREN>dsoln <LBRACKET>i<RBRACKET> <RPAREN> 
+        <K_DOUBLE>  l0_norm <ASSIGN>  0<PERIOD> 0d0<SEMI>        <COMMENT> Little L1 norm
+
+        <COMMENT> The real solution is uniformly 0<COMMA>  so the maximum error is the
+        <COMMENT> absolute value of the approximate solution
+
+       <K_WHILE>   <LPAREN> i  <LEQ> s1 <RPAREN> 
+         <LCURLY>
+            <K_IF>  <LPAREN> dsoln <LBRACKET>i<RBRACKET>   <LEQ> 0<PERIOD>  <RPAREN> <K_THEN> 
+                asoln <ASSIGN>  -dsoln <LBRACKET>i<RBRACKET> <SEMI> 
+            else
+                asoln <ASSIGN>  dsoln <LBRACKET>i<RBRACKET> <SEMI> 
+            <K_IF>  <LPAREN> asoln <GT> l0_norm <RPAREN> <K_THEN> 
+             <LCURLY>
+                l0_norm <ASSIGN>  asoln<SEMI> 
+            <RCURLY>    
+            i++<SEMI> 
+        <RCURLY>    
+
+        <K_RETURN>  l0_norm<SEMI> 
+
+    <RCURLY>    <COMMENT> of error_norm
+
+
+    <COMMENT> ------------------------------------------------------------------------
+    <COMMENT> Compute the residual vector<PERIOD> 
+    <COMMENT> ------------------------------------------------------------------------
+
+    <K_PROCEDURE> 
+         residuals <LPAREN>
+            <K_DOUBLE>  dsoln <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  s1<COMMA>         <COMMENT> Approximate solution
+            <K_DOUBLE>  drhs <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  rhs1<COMMA>        <COMMENT> Right hand side
+            <K_DOUBLE>  dres <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  res1        <COMMENT> Residuals
+                   <RPAREN> 
+     <LCURLY>
+        <K_INTEGER>  i<SEMI>                       <COMMENT> Loop variable
+
+        <COMMENT> Compute the residuals
+        dres <LBRACKET>0<RBRACKET>  <ASSIGN>  dres <LBRACKET>res1<RBRACKET>  <ASSIGN>  0<PERIOD> 0d0<SEMI> 
+        <K_DO>  <LPAREN> i <ASSIGN>  1<SEMI>  i <LT> s1<SEMI>  i <INCREMENT> <RPAREN> 
+            dres <LBRACKET>i<RBRACKET>  <ASSIGN>  drhs <LBRACKET>i<RBRACKET> <MINUS> 2<PERIOD> 0 <MULTIPLY>  dsoln <LBRACKET>i<RBRACKET>  
+                              <PLUS> dsoln <LBRACKET>i-1<RBRACKET>  
+                              <PLUS> dsoln <LBRACKET>i+1<RBRACKET> <SEMI> 
+
+    <RCURLY>    <COMMENT> of residuals
+
+
+    <COMMENT> ------------------------------------------------------------------------
+    <COMMENT> <K_DO> some Gauss-Seidel iterations to approximate the solution<PERIOD> 
+    <COMMENT> ------------------------------------------------------------------------
+
+    <K_FUNCTION> 
+    <K_DOUBLE> gauss_seidel <LPAREN>
+            <K_INTEGER>  iters<COMMA>                       <COMMENT> Number of iterations
+            <K_DOUBLE>  dsoln <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  s1<COMMA>         <COMMENT> Approximate solution
+            <K_DOUBLE>  drhs <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  rhs1        <COMMENT> Right hand side
+                     <RPAREN> 
+     <LCURLY>
+        <K_INTEGER>  i<COMMA>  n<ASSIGN> 1<SEMI>                         <COMMENT> Loop variables
+
+        <COMMENT> <K_DO> iters number of Gauss-Seidel iterations 
+       <K_WHILE>   <LPAREN>n <LEQ>iters<RPAREN> 
+         <LCURLY>
+            <K_DO>  <LPAREN> i <ASSIGN>  1<SEMI>  i <LT> s1<SEMI>  i <INCREMENT> <RPAREN> 
+                dsoln <LBRACKET>i<RBRACKET>  <ASSIGN>   <LPAREN> drhs <LBRACKET>i<RBRACKET>  <PLUS> dsoln <LBRACKET>i-1<RBRACKET>  
+                                     <PLUS> dsoln <LBRACKET>i+1<RBRACKET> <RPAREN>  <DIVIDE> 2<PERIOD> 0d0<SEMI> 
+            n++<SEMI> 
+        <RCURLY>    
+
+        <COMMENT> <K_RETURN>  the error norm
+        <K_RETURN>  error_norm <LPAREN> dsoln<COMMA>  s1 <RPAREN> <SEMI> 
+
+    <RCURLY>    <COMMENT> of gauss_seidel
+
+
+    <COMMENT> ------------------------------------------------------------------------
+    <COMMENT> Interpolate between the two grids<PERIOD> 
+    <COMMENT> ------------------------------------------------------------------------
+
+    <K_FUNCTION> 
+    <K_INTEGER>  interpolate <LPAREN> 
+            <K_DOUBLE> dfrom <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  f1<COMMA>          <COMMENT> Original data<COMMA>  sized  <LPAREN>f1<RPAREN>   
+            <K_DOUBLE> dto <LBRACKET><RBRACKET> <COMMA>    <K_INTEGER>  t1          <COMMENT> Target date<COMMA>  sized   <LPAREN>t1<RPAREN>    
+                   <RPAREN> 
+     <LCURLY>
+
+        <COMMENT> Two <K_PROCEDURE> s defined only inside of interpolate
+
+        <COMMENT> --------------------------------------------------------------------
+        <COMMENT> Interpolate from the finer mesh to the coarser mesh<PERIOD> 
+        <COMMENT> --------------------------------------------------------------------
+
+        <K_PROCEDURE> 
+             coarsen <LPAREN> 
+                <K_DOUBLE> dfrom <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  f1<COMMA>      <COMMENT> Original data<COMMA>  sized  <LPAREN>f1<RPAREN>   
+                <K_DOUBLE> dto <LBRACKET><RBRACKET> <COMMA>    <K_INTEGER>  t1      <COMMENT> Target date<COMMA>  sized   <LPAREN>t1<RPAREN>    
+                   <RPAREN> 
+         <LCURLY>
+            <K_INTEGER>  i<COMMA>  m<SEMI>        <COMMENT> Loop variables   
+
+            <COMMENT> Aggregate the from data in a Galerkin style on the coarser mesh  
+            dto <LBRACKET>0<RBRACKET>  <ASSIGN>  dto <LBRACKET>t1<RBRACKET>  <ASSIGN>  0<PERIOD> <SEMI> 
+            m <ASSIGN>  0<SEMI> 
+            <K_DO>  <LPAREN> i <ASSIGN>  1 <SEMI>  i <LT> t1 <SEMI>  i <INCREMENT> <RPAREN> 
+             <LCURLY>
+                m <ASSIGN_PLUS>  2<SEMI> 
+                dto <LBRACKET>i<RBRACKET>  <ASSIGN>  dfrom <LBRACKET>m<RBRACKET>  +
+                        5<PERIOD> d-1 <MULTIPLY>   <LPAREN> dfrom <LBRACKET>m-1<RBRACKET>  <PLUS> dfrom <LBRACKET>m+1<RBRACKET>  <RPAREN> <SEMI> 
+            <RCURLY>    
+
+        <RCURLY>    <COMMENT> of coarsen
+
+
+        <COMMENT> --------------------------------------------------------------------
+        <COMMENT> Interpolate from the coarser mesh to the finer mesh and add to an
+        <COMMENT> already existing approximate solution<PERIOD> 
+        <COMMENT> --------------------------------------------------------------------
+
+        <K_PROCEDURE> 
+             refine_add <LPAREN>
+                <K_DOUBLE> dfrom <LBRACKET><RBRACKET> <COMMA>  <K_INTEGER>  f1<COMMA>      <COMMENT> Original data<COMMA>  sized  <LPAREN>f1<RPAREN>   
+                <K_DOUBLE> dto <LBRACKET><RBRACKET> <COMMA>    <K_INTEGER>  t1      <COMMENT> Target date<COMMA>  sized   <LPAREN>t1<RPAREN>    
+                   <RPAREN> 
+         <LCURLY>
+            <K_INTEGER>  i<COMMA>  m<SEMI>        <COMMENT> Loop variables   
+
+            <COMMENT> Deal with mesh points coincident between the two meshes  
+            m <ASSIGN>  0<SEMI> 
+            <K_DO>  <LPAREN> i <ASSIGN>  1<SEMI>  i <LT> f1 <SEMI>  i <INCREMENT> <RPAREN> 
+             <LCURLY>
+                m <ASSIGN>  m <PLUS> 2<SEMI> 
+                dto <LBRACKET>m<RBRACKET>  <ASSIGN>  dto <LBRACKET>m<RBRACKET>  <PLUS> dfrom <LBRACKET>i<RBRACKET> <SEMI> 
+            <RCURLY>    
+
+            <COMMENT> Deal with mesh points noncoincident between the two meshes  
+            m <ASSIGN>  -1<SEMI> 
+            <K_DO>  <LPAREN> i <ASSIGN>  0<SEMI>  i <LT> f1<SEMI>  i <INCREMENT> <RPAREN> 
+             <LCURLY>
+                m <ASSIGN>  m <PLUS> 2<SEMI> 
+                dto <LBRACKET>m<RBRACKET>  <ASSIGN>  dto <LBRACKET>m<RBRACKET>  <PLUS> 
+                         <PERIOD> 5 <MULTIPLY>   <LPAREN> dfrom <LBRACKET>i<RBRACKET>  <PLUS> dfrom <LBRACKET>i+1<RBRACKET>  <RPAREN> <SEMI> 
+            <RCURLY>    
+
+        <RCURLY>    <COMMENT> of refine_add
+
+
+        <COMMENT> interpolate's code really starts here
+
+        <COMMENT> Interpolate to a coarser mesh    
+        <K_IF>  <LPAREN> t1 <DEQ> f1 <DIVIDE> 2 <RPAREN> <K_THEN> 
+            coarsen <LPAREN> dfrom<COMMA>  f1<COMMA>  dto<COMMA>  t1 <RPAREN> <SEMI> 
+
+        <COMMENT> Interpolate and add to what is on a finer mesh   
+        <K_ELSE> <K_IF>  <LPAREN> t1 <DEQ> f1 <MULTIPLY>  2 <RPAREN> <K_THEN> 
+         <LCURLY>
+            refine_add <LPAREN> dfrom<COMMA>  f1<COMMA>  dto<COMMA>  t1 <RPAREN> <SEMI> 
+        <RCURLY>    
+
+        <COMMENT> Uh<COMMA>  oh<PERIOD> <PERIOD> <PERIOD>  this is incompatible   
+        else
+         <LCURLY>
+            <K_PRINT_STRING>  <LPAREN> "Error in routine interp: data size mismatch<PERIOD> \n" <RPAREN> <SEMI> 
+            <K_RETURN>  0<SEMI> 
+        <RCURLY>    
+        <K_RETURN>  1<SEMI> 
+
+    <RCURLY>    <COMMENT> of interpolate
+
+
+    <COMMENT> ------------------------------------------------------------------------
+    <COMMENT> The actual two grid multilevel algorithm<PERIOD> 
+    <COMMENT> ------------------------------------------------------------------------
+
+    <K_FUNCTION> 
+    <K_INTEGER>  main <LPAREN> 
+            <RPAREN> 
+     <LCURLY>
+        <K_INTEGER>  rval <ASSIGN>  0<SEMI>       <COMMENT> <K_RETURN>  value
+        <K_INTEGER>  fm1<ASSIGN> 1<COMMA>  cm1<SEMI>     <COMMENT> Fine and coarse mesh upper limits
+        <K_DOUBLE>  enorm<SEMI>           <COMMENT> Error norm
+
+        <COMMENT> Determine fine mesh size<PERIOD>   Coarse mesh is roughly half the size<PERIOD> 
+       <K_WHILE>  <LPAREN> fm1  <LEQ> 4 <DOR> fm1 <MOD>  2 <NE>  0 <RPAREN> 
+         <LCURLY>
+            <K_PRINT_STRING>  <LPAREN> "Number of points in the fine mesh  <LPAREN>must be even and atleast 6<RPAREN>  " <RPAREN> <SEMI> 
+            <K_READ_INTEGER>   <LPAREN> fm1 <RPAREN> <SEMI> 
+        <RCURLY>    
+        cm1 <ASSIGN>  fm1 <DIVIDE> 2<SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "Fine   mesh points 0:" <RPAREN> <SEMI> 
+        print_<K_INTEGER>  <LPAREN> fm1 <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "\nCoarse mesh points 0:" <RPAREN> <SEMI> 
+        print_<K_INTEGER>  <LPAREN> cm1 <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "\n" <RPAREN> <SEMI> 
+
+        <COMMENT> Allocate space dynamically
+        <K_DOUBLE> fm <LBRACKET>fm1+1<RBRACKET> <COMMA>        <COMMENT> Fine grid approximate solution
+               frhs <LBRACKET>fm1+1<RBRACKET> <COMMA>      <COMMENT> Fine grid right hand side
+               fres <LBRACKET>fm1+1<RBRACKET> <SEMI>      <COMMENT> Fine grid residuals
+        <K_DOUBLE> cm <LBRACKET>cm1+1<RBRACKET> <COMMA>  crhs <LBRACKET>cm1+1<RBRACKET> <SEMI>   <COMMENT> Coarse grid solution and right
+                                        <COMMENT> hand side
+
+        <COMMENT> Set the initial guess to the solution
+        set_constant <LPAREN> 1<PERIOD> 0d0<COMMA>  fm<COMMA>  fm1 <RPAREN> <SEMI> 
+        fm <LBRACKET>0<RBRACKET>  <ASSIGN>  0<PERIOD> 0d0<SEMI> 
+        fm <LBRACKET>fm1<RBRACKET>  <ASSIGN>  0<PERIOD> <SEMI> 
+        print_vector <LPAREN> "Initial guess"<COMMA>  fm<COMMA>  fm1 <RPAREN> <SEMI> 
+
+        <COMMENT> Get the initial error norm
+        enorm <ASSIGN>  error_norm <LPAREN> fm<COMMA>  fm1 <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "initial error norm <ASSIGN>  " <RPAREN> <SEMI> 
+        <K_PRINT_DOUBLE>  <LPAREN> enorm <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "\n" <RPAREN> <SEMI> 
+
+        <COMMENT> <K_DO> some Gauss-Seidel iterations on the fine mesh
+        enorm <ASSIGN>  gauss_seidel <LPAREN> 4<COMMA>  fm<COMMA>  fm1<COMMA>  frhs<COMMA>  fm1 <RPAREN> <SEMI> 
+        print_vector <LPAREN> "after first fine mesh smoothing"<COMMA>  fm<COMMA>  fm1 <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "Fine mesh error norm <ASSIGN>  " <RPAREN> <SEMI> 
+        <K_PRINT_DOUBLE>  <LPAREN> enorm <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "\n" <RPAREN> <SEMI> 
+
+        <COMMENT> Compute the residuals on the fine mesh and project them onto the
+        <COMMENT> coarse mesh right hand side<PERIOD> 
+        residuals <LPAREN> fm<COMMA>  fm1<COMMA>  frhs<COMMA>  fm1<COMMA>  fres<COMMA>  fm1 <RPAREN> <SEMI> 
+        print_vector <LPAREN> "Residuals on fine mesh"<COMMA>  fres<COMMA>  fm1 <RPAREN> <SEMI> 
+        <K_IF>  <LPAREN> interpolate <LPAREN> fres<COMMA>  fm1<COMMA>  crhs<COMMA>  cm1 <RPAREN>  <NE>  0 <RPAREN> <K_THEN> 
+            <K_RETURN>  rval <ASSIGN>  1<SEMI> 
+
+        <COMMENT> <K_DO> some Gauss-Seidel iterations on the coarse mesh
+        enorm <ASSIGN>  gauss_seidel <LPAREN> 500<COMMA>  cm<COMMA>  cm1<COMMA>  crhs<COMMA>  cm1 <RPAREN> <SEMI> 
+        print_vector <LPAREN> "coarse mesh correction"<COMMA>  cm<COMMA>  cm1 <RPAREN> <SEMI> 
+
+        <COMMENT> Interpolate the correction to the fine grid
+        <K_IF>  <LPAREN> interpolate <LPAREN> cm<COMMA>  cm1<COMMA>  fm<COMMA>  fm1 <RPAREN>  <GT> 0 <RPAREN> <K_THEN> 
+            <K_RETURN>  2<SEMI> 
+        enorm <ASSIGN>  error_norm <LPAREN> fm<COMMA>  fm1 <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "Fine mesh error norm <ASSIGN>  " <RPAREN> <SEMI> 
+        <K_PRINT_DOUBLE>  <LPAREN> enorm <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "\n" <RPAREN> <SEMI> 
+        print_vector <LPAREN> "after interpolation to fine mesh"<COMMA>  fm<COMMA>  fm1 <RPAREN> <SEMI> 
+
+        <COMMENT> <K_DO> some Gauss-Seidel iterations on the fine mesh
+        enorm <ASSIGN>  gauss_seidel <LPAREN> 4<COMMA>  fm<COMMA>  fm1<COMMA>  frhs<COMMA>  fm1 <RPAREN> <SEMI> 
+        print_vector <LPAREN> "after second fine mesh smoothing"<COMMA>  fm<COMMA>  fm1 <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "Fine mesh error norm <ASSIGN>  " <RPAREN> <SEMI> 
+        <K_PRINT_DOUBLE>  <LPAREN> enorm <RPAREN> <SEMI> 
+        <K_PRINT_STRING>  <LPAREN> "\n" <RPAREN> <SEMI> 
+
+        <COMMENT> All done<PERIOD>   <K_RETURN>  0 <K_IF> everything worked out or something <K_ELSE> if
+        <COMMENT> something went wrong<PERIOD> 
+        <K_RETURN>  rval<SEMI> 
+
+    <RCURLY>    <COMMENT> of main
+
+<RCURLY>    <COMMENT> of <K_PROGRAM>  $two_grid_solver
