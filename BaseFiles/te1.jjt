@@ -297,27 +297,27 @@ void assignOperator() #AssignOperator :
 {
 	t=<K_ASSIGN> {
 		jjtThis.data.put("assign", "=");
-		System.out.println("Assigned variable")
+		System.out.println("Assigned variable");
 	}
 	| t=<K_ASSIGN_PLUS> {
 		jjtThis.data.put("assign", "+=");
-		System.out.println("Plus assigned variable")
+		System.out.println("Plus assigned variable");
 	}
 	| t=<K_ASSIGN_MINUS> {
 		jjtThis.data.put("assign", "-=");
-		System.out.println("Minus assigned variable")
+		System.out.println("Minus assigned variable");
 	}
 	| t=<K_ASSIGN_MULTIPLY> {
 		jjtThis.data.put("assign", "*=");
-		System.out.println("Times assigned variable")
+		System.out.println("Times assigned variable");
 	}
 	| t=<K_ASSIGN_DIVIDE> {
 		jjtThis.data.put("assign", "/=");
-		System.out.println("Divide assigned variable")
+		System.out.println("Divide assigned variable");
 	}
 	| t=<K_ASSIGN_MOD> {
 		jjtThis.data.put("assign", "%=");
-		System.out.println("Mod assigned variable")
+		System.out.println("Mod assigned variable");
 	}
 }
 
@@ -331,7 +331,7 @@ void functionCall() #FunctionCall :
 }
 
 void printCall() #PrintCall :
-{ Token t }
+{ Token t; }
 {
 	<K_PRINT_INTEGER> <K_LPAREN> t=value() <K_RPAREN> 
 	{
@@ -384,10 +384,11 @@ void definedCall() #DefinedCall :
 }
 
 void valueList() #ValueList :
-{}
-value() (<K_COMMA> value())* 
 {
-
+	/* declare variables */
+}
+{
+	value() (<K_COMMA> value())* {}
 }
 
 
