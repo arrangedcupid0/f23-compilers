@@ -414,7 +414,13 @@ void atomicValue() #AtomicValue :
 void mathOperatorValue() #mathOperatorValue :
 {}
 {
-	value() (mathOperator() value())* {}
+	value() mathOperatorValueTail() {}
+}
+
+void mathOperatorValueTail() #MathOperatorValueTail :
+{}
+{
+	(mathOperator() value())? mathOperatorValueTail() {}
 }
 
 void statementBlock() #StatementBlock :
@@ -439,7 +445,13 @@ void predicate() #Predicate :
 void compoundPredicate() #CompundPredicate :
 {}
 {
-	predicate() (connectiveOperator() predicate())* {}
+	predicate() compoundPredicateTail() {}
+}
+
+void compoundPredicateTail() #CompundPredicateTail :
+{}
+{
+	(connectiveOperator() predicate())? compoundPredicateTail() {}
 }
 
 void connectiveOperator() #ConnectiveOperator :
