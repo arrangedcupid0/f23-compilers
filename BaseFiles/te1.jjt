@@ -434,24 +434,15 @@ void statementBlock() #StatementBlock :
 void predicate() #Predicate :
 {}
 {
-	LOOKAHEAD("!" predicate()) 
-	<K_NOT> predicate() {}
-	| LOOKAHEAD(value() compareOperator() value()) 
+	 atomicPredicate() {}
+	 | <K_NOT> predicate() {}
+	 | predicate() connectiveOperator() predicate() {}
+}
+
+void atomicPredicate() #AtomicPredicate :
+{}
+{
 	value() compareOperator() value() {}
-	| LOOKAHEAD(predicate() connectiveOperator() predicate())
-	compoundPredicate() {}
-}
-
-void compoundPredicate() #CompundPredicate :
-{}
-{
-	predicate() compoundPredicateTail() {}
-}
-
-void compoundPredicateTail() #CompundPredicateTail :
-{}
-{
-	(connectiveOperator() predicate())? compoundPredicateTail() {}
 }
 
 void connectiveOperator() #ConnectiveOperator :
