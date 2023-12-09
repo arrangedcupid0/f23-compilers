@@ -231,7 +231,7 @@ void declaration() #Declaration :
 		jjtThis.data.put("type","INTEGERARRAY");
 		jjtThis.data.put("value",t.image);
 		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer");
+		System.out.println("Declared integer array");
 	}
 	| LOOKAHEAD(4)
 	<K_DOUBLE> t=<IDENTIFIER> <K_LBRACKET> <K_RBRACKET>
@@ -239,7 +239,7 @@ void declaration() #Declaration :
 		jjtThis.data.put("type","DOUBLEARRAY");
 		jjtThis.data.put("value",t.image);
 		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer");
+		System.out.println("Declared double array");
 	}
 	| LOOKAHEAD(4)
 	<K_STRING> t=<IDENTIFIER> <K_LBRACKET> <K_RBRACKET>
@@ -247,7 +247,7 @@ void declaration() #Declaration :
 		jjtThis.data.put("type","STRINGARRAY");
 		jjtThis.data.put("value",t.image);
 		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer");
+		System.out.println("Declared String array");
 	}
 	| <K_INTEGER> t=<IDENTIFIER> (<K_ASSIGN> value())?
 	{
@@ -275,21 +275,50 @@ void declaration() #Declaration :
 void assignment() #Assignment :
 { Token val; Token var;}
 {
-	LOOKAHEAD(2) <IDENTIFIER> assignOperator() value() {}
-	| LOOKAHEAD(2) <IDENTIFIER> <K_INCREMENT> {}
-	| LOOKAHEAD(2) <IDENTIFIER> <K_DECREMENT> {}
+	LOOKAHEAD(2) <IDENTIFIER> assignOperator() value() {
+		jjtThis.data.put("more", "yes");
+		System.out.println("Matched assignment with value");
+	}
+	| LOOKAHEAD(2) <IDENTIFIER> <K_INCREMENT> {
+		jjtThis.data.put("more", "no");
+		jjtThis.data.put("assign", "++");
+		System.out.println("Matched ++");
+	}
+	| LOOKAHEAD(2) <IDENTIFIER> <K_DECREMENT> {
+		jjtThis.data.put("more", "no");
+		jjtThis.data.put("assign", "--");
+		System.out.println("Matched --");
+	}
 
 }
 
 void assignOperator() #AssignOperator :
 { Token t;}
 {
-	t=<K_ASSIGN> {}
-	| t=<K_ASSIGN_PLUS> {}
-	| t=<K_ASSIGN_MINUS> {}
-	| t=<K_ASSIGN_MULTIPLY> {}
-	| t=<K_ASSIGN_DIVIDE> {}
-	| t=<K_ASSIGN_MOD> {}
+	t=<K_ASSIGN> {
+		jjtThis.data.put("assign", "=");
+		System.out.println("Assigned variable")
+	}
+	| t=<K_ASSIGN_PLUS> {
+		jjtThis.data.put("assign", "+=");
+		System.out.println("Plus assigned variable")
+	}
+	| t=<K_ASSIGN_MINUS> {
+		jjtThis.data.put("assign", "-=");
+		System.out.println("Minus assigned variable")
+	}
+	| t=<K_ASSIGN_MULTIPLY> {
+		jjtThis.data.put("assign", "*=");
+		System.out.println("Times assigned variable")
+	}
+	| t=<K_ASSIGN_DIVIDE> {
+		jjtThis.data.put("assign", "/=");
+		System.out.println("Divide assigned variable")
+	}
+	| t=<K_ASSIGN_MOD> {
+		jjtThis.data.put("assign", "%=");
+		System.out.println("Mod assigned variable")
+	}
 }
 
 void functionCall() #FunctionCall :
@@ -302,19 +331,25 @@ void functionCall() #FunctionCall :
 }
 
 void printCall() #PrintCall :
-{ /*Variable Declrations*/ }
+{ Token t }
 {
-	<K_PRINT_INTEGER> <K_LPAREN> value() <K_RPAREN> 
+	<K_PRINT_INTEGER> <K_LPAREN> t=value() <K_RPAREN> 
 	{
-
+		jjtThis.data.put("printType", "int");
+		jjtThis.data.put("printVal", t.image);
+		System.out.println("Printing int");
 	}
-	| <K_PRINT_DOUBLE> <K_LPAREN> value() <K_RPAREN> 
+	| <K_PRINT_DOUBLE> <K_LPAREN> t=value() <K_RPAREN> 
 	{
-
+		jjtThis.data.put("printType", "double");
+		jjtThis.data.put("printVal", t.image);
+		System.out.println("Printing double");
 	}
-	| <K_PRINT_STRING> <K_LPAREN> value() <K_RPAREN> 
+	| <K_PRINT_STRING> <K_LPAREN> t=value() <K_RPAREN> 
 	{
-		
+		jjtThis.data.put("printType", "String");
+		jjtThis.data.put("printVal", t.image);
+		System.out.println("Printing string");
 	}
 }
 
