@@ -230,8 +230,9 @@ public class TreeWalk implements CompilerVisitor {
         int ID = GetID();
 
         //still needs the ability to parse if you give it a variable to initialize
-        fileText = fileText + typeStandard(node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
         IndentCode();
+        fileText = fileText + typeStandard(node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
+        
 
         // Print information about node
         System.out.println("-----");
@@ -278,7 +279,7 @@ public class TreeWalk implements CompilerVisitor {
         {
             //should be no reason to check children, because there are no children
             IndentCode();
-            fileText += VarID + node.data.get("assign") + ";\r\n"
+            fileText += VarID + " " + node.data.get("assign") + ";\r\n"
         } else {
             // Iterate through children nodes
             Indent++;
@@ -401,7 +402,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTValue node, Object data) {
         int ID = GetID();
 
-        
+
         // Print information about node
         System.out.println("-----");
         System.out.println("** Node " + ID + ": Value");
