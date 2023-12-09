@@ -434,9 +434,7 @@ void statementBlock() #StatementBlock :
 void predicate() #Predicate :
 {}
 {
-	 atomicPredicate() {}
-	 | <K_NOT> predicate() {}
-	 | predicate() connectiveOperator() predicate() {}
+	(<K_NOT>)? atomicPredicate() (connectiveOperator() (<K_NOT>)? atomicPredicate())* {}
 }
 
 void atomicPredicate() #AtomicPredicate :
