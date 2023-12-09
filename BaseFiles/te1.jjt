@@ -178,14 +178,14 @@ void parameter() #Parameter:
 		jjtThis.data.put("type","DOUBLEARRAY");
 		jjtThis.data.put("value",t.image);
 		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer");
+		System.out.println("Declared double");
 	}
 	| 
 	<K_STRING> t=<IDENTIFIER> (<K_LBRACKET> <K_RBRACKET>)?{
 		jjtThis.data.put("type","STRINGARRAY");
 		jjtThis.data.put("value",t.image);
 		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer");
+		System.out.println("Declared string");
 	}
 }
 
@@ -350,10 +350,10 @@ void definedCall() #DefinedCall :
 
 void valueList() #ValueList :
 {}
-	value() (<K_COMMA> value())* 
-	{
+value() (<K_COMMA> value())* 
+{
 
-	}
+}
 
 
 void value() #Value :
