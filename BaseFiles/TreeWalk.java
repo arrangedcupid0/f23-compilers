@@ -229,7 +229,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTDeclaration node, Object data) {
         int ID = GetID();
 
-        //still needs the ability to parse if you give it a variable to initialize
+        //TODO: still needs the ability to parse if you give it a variable to initialize
         IndentCode();
         fileText = fileText + typeStandard(node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
         
@@ -279,12 +279,10 @@ public class TreeWalk implements CompilerVisitor {
         {
             //should be no reason to check children, because there are no children
             IndentCode();
-            fileText += VarID + " " + node.data.get("assign") + ";\r\n"
+            fileText += VarID + node.data.get("assign") + ";\r\n"
         } else {
             // Iterate through children nodes
-            Indent++;
             node.childrenAccept(this, data);
-            Indent--;
         }
         // Return to parent node (or move to sibling node if exists)
         return null;
@@ -338,10 +336,10 @@ public class TreeWalk implements CompilerVisitor {
 
         switch (node.data.get("printType")){
             case "int":
-                fileText += "printf(%d, " + node.data.get("printVal") + ");\r\n";
+                fileText += "printf(\"%d\", " + node.data.get("printVal") + ");\r\n";
                 break;
             case "double":
-                fileText += "printf(%f, " + node.data.get("printVal") + ");\r\n";
+                fileText += "printf(\"%f\", " + node.data.get("printVal") + ");\r\n";
                 break;
             case "String":
                 fileText += "printf(" + node.data.get("printVal") + ");\r\n";
