@@ -29,6 +29,7 @@ SKIP :
 	|"\n"
 	|"\r"
 	|"\f"
+	| <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
 }
 
 TOKEN:
@@ -113,32 +114,34 @@ void programBody() #ProgramBody:
 }
 
 void function() #Function:
-{ Token t; Token t2; }
+{ Token t; Token t2; String s;}
 {
-	<K_FUNCTION> t=type() t2=<IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> body() <K_RCURLY> 
+	LOOKAHEAD(5)
+	<K_FUNCTION> s=type() t2=<IDENTIFIER> <K_LPAREN> <K_RPAREN> <K_LCURLY> body() <K_RCURLY> 
 	{
 		jjtThis.data.put("Param","false");
-		jjtThis.data.put("type",t.image);
+		jjtThis.data.put("type",s);
 		jjtThis.data.put("funcName",t2.image);
 		System.out.println("Matched Function");
 	}
-	| <K_FUNCTION> t=type() t2=<IDENTIFIER> <K_LPAREN> parameterList() <K_RPAREN> <K_LCURLY> body() <K_RCURLY> 
+	| LOOKAHEAD(5)
+	<K_FUNCTION> s=type() t2=<IDENTIFIER> <K_LPAREN> parameterList() <K_RPAREN> <K_LCURLY> body() <K_RCURLY> 
 	{
 		jjtThis.data.put("Param","true");
-		jjtThis.data.put("type",t.image);
+		jjtThis.data.put("type",s);
 		jjtThis.data.put("funcName",t2.image);
 		System.out.println("Matched Function");
 	}
 	
 }
 
-void type() #Type:
-{}
+String type() #Type:
+{Token t;}
 {
-	(<K_INTEGER> | <K_DOUBLE> | <K_STRING>)
-	{
-		
-	}
+	t=<K_INTEGER> {return (String)t.image; }
+	| t=<K_DOUBLE> {return (String)t.image; }
+	| t=<K_STRING>{return (String)t.image; }
+	
 }
 
 void procedure() #Procedure:
@@ -340,22 +343,22 @@ void functionCall() #FunctionCall :
 void printCall() #PrintCall :
 { Token t; }
 {
-	<K_PRINT_INTEGER> <K_LPAREN> t=value() <K_RPAREN> 
+	<K_PRINT_INTEGER> <K_LPAREN> value() <K_RPAREN> 
 	{
 		jjtThis.data.put("printType", "int");
-		jjtThis.data.put("printVal", t.image);
+		
 		System.out.println("Printing int");
 	}
-	| <K_PRINT_DOUBLE> <K_LPAREN> t=value() <K_RPAREN> 
+	| <K_PRINT_DOUBLE> <K_LPAREN> value() <K_RPAREN> 
 	{
 		jjtThis.data.put("printType", "double");
-		jjtThis.data.put("printVal", t.image);
+		
 		System.out.println("Printing double");
 	}
-	| <K_PRINT_STRING> <K_LPAREN> t=value() <K_RPAREN> 
+	| <K_PRINT_STRING> <K_LPAREN> value() <K_RPAREN> 
 	{
 		jjtThis.data.put("printType", "String");
-		jjtThis.data.put("printVal", t.image);
+		
 		System.out.println("Printing string");
 	}
 }
@@ -380,11 +383,13 @@ void readCall() #ReadCall :
 void definedCall() #DefinedCall :
 { /*Variable Declrations*/ }
 {
+	LOOKAHEAD(3)
 	<IDENTIFIER> <K_LPAREN> <K_RPAREN> 
 	{
 
 	}
-	| <IDENTIFIER> <K_LPAREN> valueList() <K_RPAREN> 
+	| LOOKAHEAD(3)
+	<IDENTIFIER> <K_LPAREN> valueList() <K_RPAREN> 
 	{
 
 	}
@@ -403,33 +408,21 @@ void value() #Value :
 {/* May need Lookaheads */}
 {
 	<K_LPAREN> value() <K_RPAREN> {}
-	| atomicValue()  {}
-	| definedCall() {}
-	| assignment() {}
-	| mathOperatorValue() {}
+	| atomicValue() (mathOperator() atomicValue())* {}
 }
 
 void atomicValue() #AtomicValue :
 { Token t;}
 {
 	LOOKAHEAD(2) t=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {}
-	| t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image);}
+	| LOOKAHEAD(definedCall()) definedCall() {jjtThis.data.put("Type","definedCall"); jjtThis.data.put("Value", "No Value");}
+	| LOOKAHEAD(assignment()) assignment() {jjtThis.data.put("Type","assignment"); jjtThis.data.put("Value", "No Value");}
 	| t=<ICONSTANT> {jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image);}
 	| t=<DCONSTANT> {jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image);}
 	| t=<SCONSTANT> {jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image);}
+	| t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image);}
 }
 
-void mathOperatorValue() #mathOperatorValue :
-{}
-{
-	value() mathOperatorValueTail() {}
-}
-
-void mathOperatorValueTail() #MathOperatorValueTail :
-{}
-{
-	(mathOperator() value())? mathOperatorValueTail() {}
-}
 
 void statementBlock() #StatementBlock :
 {}

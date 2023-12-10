@@ -1,3 +1,4 @@
+// some comment
 program tiny_example_1
 {
     function integer main()

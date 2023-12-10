@@ -146,7 +146,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTProcedure node, Object data) {
         int ID = GetID();
         IndentCode();
-         fileText += typeStandard((String) node.data.get("type")) + " " + 
+        fileText += typeStandard((String) node.data.get("type")) + " " +
                 node.data.get("funcName") + getParams(node) + "{\r\n";
 
         // Print information about node
@@ -169,7 +169,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTParameterList node, Object data) {
         int ID = GetID();
 
-        //the output for this one should be taken care of in getParams
+        // the output for this one should be taken care of in getParams
 
         // Print information about node
         System.out.println("-----");
@@ -184,7 +184,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTParameter node, Object data) {
         int ID = GetID();
 
-        //ibid. see getParams
+        // ibid. see getParams
 
         // Print information about node
         System.out.println("-----");
@@ -199,7 +199,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTBody node, Object data) {
         int ID = GetID();
 
-        //anything in here should be taken care of by the individual procedure, etc
+        // anything in here should be taken care of by the individual procedure, etc
 
         // Print information about node
         System.out.println("-----");
@@ -214,7 +214,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTExpression node, Object data) {
         int ID = GetID();
 
-        //everything here should be taken care of in the individual parts, as above
+        // everything here should be taken care of in the individual parts, as above
 
         // Print information about node
         System.out.println("-----");
@@ -229,10 +229,10 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTDeclaration node, Object data) {
         int ID = GetID();
 
-        //TODO: still needs the ability to parse if you give it a variable to initialize
+        // TODO: still needs the ability to parse if you give it a variable to
+        // initialize
         IndentCode();
-        fileText = fileText + typeStandard(node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
-        
+        fileText = fileText + typeStandard((String) node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
 
         // Print information about node
         System.out.println("-----");
@@ -249,37 +249,38 @@ public class TreeWalk implements CompilerVisitor {
 
         // Standardize types
         String VarID = (String) node.data.get("variable");
-        String VarType = (String) node.data.get("type");
-        Object VarValue = (String) node.data.get("value");
-        int lineOfDecl = (int) node.data.get("lineNo");
+        // String VarType = (String) node.data.get("type");
+        // Object VarValue = (String) node.data.get("value");
+        // int lineOfDecl = (int) node.data.get("lineNo");
 
-        if (symbolTable.get(VarID) != null) {
-            lineOfDecl = (int) symbolTable.get(VarID).LineOfDecl;
-        }
-        /* 
-        i have a theory that this needs to be a level below here, in the actual assign operator
-            IndentCode();
-            fileText += VarID + " = " + VarValue + ";\r\n";
-        */
+        // if (symbolTable.get(VarID) != null) {
+        // lineOfDecl = (int) symbolTable.get(VarID).LineOfDecl;
+        // }
+        /*
+         * i have a theory that this needs to be a level below here, in the actual
+         * assign operator
+         * IndentCode();
+         * fileText += VarID + " = " + VarValue + ";\r\n";
+         */
 
         // Print information about node
         System.out.println("-----");
         System.out.println("** Node " + ID + ": Assignment");
-        System.out.println("**** Type: " + VarType);
-        System.out.println("**** Name: " + VarID);
-        System.out.println("**** Value: " + VarValue);
+        // System.out.println("**** Type: " + VarType);
+        // System.out.println("**** Name: " + VarID);
+        // System.out.println("**** Value: " + VarValue);
         System.out.println("-----");
 
         // Set up data object
-        SymbolTableEntry entry = new SymbolTableEntry(VarID, VarType, null, null, lineOfDecl, null, VarValue);
+        // SymbolTableEntry entry = new SymbolTableEntry(VarID, VarType, null, null,
+        // lineOfDecl, null, VarValue);
         // add to Symbol table
-        symbolTable.put(VarID, entry);
+        // symbolTable.put(VarID, entry);
 
-        if(node.data.get("more") == "no")
-        {
-            //should be no reason to check children, because there are no children
+        if (node.data.get("more") == "no") {
+            // should be no reason to check children, because there are no children
             IndentCode();
-            fileText += VarID + node.data.get("assign") + ";\r\n"
+            fileText += VarID + node.data.get("assign") + ";\r\n";
         } else {
             // Iterate through children nodes
             node.childrenAccept(this, data);
@@ -290,17 +291,17 @@ public class TreeWalk implements CompilerVisitor {
 
     public Object visit(ASTAssignOperator node, Object data) {
         int ID = GetID();
-        String VarID = (String) node.data.get("variable");
-        String VarType = (String) node.data.get("type");
-        Object VarValue = (String) node.data.get("value");
-        int lineOfDecl = (int) node.data.get("lineNo");
+        // String VarID = (String) node.data.get("variable");
+        // String VarType = (String) node.data.get("type");
+        // Object VarValue = (String) node.data.get("value");
+        // int lineOfDecl = (int) node.data.get("lineNo");
 
-        if (symbolTable.get(VarID) != null) {
-            lineOfDecl = (int) symbolTable.get(VarID).LineOfDecl;
-        }
-        //this way, we should be able to get the exact operator that we need
+        // if (symbolTable.get(VarID) != null) {
+        // lineOfDecl = (int) symbolTable.get(VarID).LineOfDecl;
+        // }
+        // this way, we should be able to get the exact operator that we need
         IndentCode();
-        fileText += VarID + " " + node.data.get("assign") + " " + VarValue + ";\r\n"
+        // fileText += VarID + " " + node.data.get("assign") + " " + VarValue + ";\r\n";
         // Print information about node
         System.out.println("-----");
         System.out.println("** Node " + ID + ": AssignOperator");
@@ -332,9 +333,9 @@ public class TreeWalk implements CompilerVisitor {
         System.out.println("** Node " + ID + ": PrintCall");
         System.out.println("-----");
 
-        String varID = node.data.get("variable");
+        String varID = (String) node.data.get("variable");
 
-        switch (node.data.get("printType")){
+        switch ((String) node.data.get("printType")) {
             case "int":
                 fileText += "printf(\"%d\", " + node.data.get("printVal") + ");\r\n";
                 break;
@@ -346,7 +347,6 @@ public class TreeWalk implements CompilerVisitor {
                 break;
         }
 
-
         node.childrenAccept(this, data);
 
         return null;
@@ -355,7 +355,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTReadCall node, Object data) {
         int ID = GetID();
 
-        //i'm not really sure what this is supposed to even do
+        // i'm not really sure what this is supposed to even do
 
         // Print information about node
         System.out.println("-----");
@@ -370,7 +370,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTDefinedCall node, Object data) {
         int ID = GetID();
 
-        //same here 
+        // same here
 
         // Print information about node
         System.out.println("-----");
@@ -385,7 +385,7 @@ public class TreeWalk implements CompilerVisitor {
     public Object visit(ASTValueList node, Object data) {
         int ID = GetID();
 
-        //output for this one is likely found in the child, ASTValue
+        // output for this one is likely found in the child, ASTValue
 
         // Print information about node
         System.out.println("-----");
@@ -399,7 +399,6 @@ public class TreeWalk implements CompilerVisitor {
 
     public Object visit(ASTValue node, Object data) {
         int ID = GetID();
-
 
         // Print information about node
         System.out.println("-----");
@@ -438,6 +437,19 @@ public class TreeWalk implements CompilerVisitor {
     }
 
     public Object visit(ASTPredicate node, Object data) {
+        int ID = GetID();
+
+        // Print information about node
+        System.out.println("-----");
+        System.out.println("** Node " + ID + ": Predicate");
+        System.out.println("-----");
+
+        node.childrenAccept(this, data);
+
+        return null;
+    }
+
+    public Object visit(ASTAtomicPredicate node, Object data) {
         int ID = GetID();
 
         // Print information about node
@@ -561,7 +573,7 @@ public class TreeWalk implements CompilerVisitor {
                 return "String";
 
             case "STRINGARRAY":
-                return "String[]"
+                return "String[]";
 
             default:
                 return "ERROR: Unknown Type";
@@ -580,7 +592,8 @@ public class TreeWalk implements CompilerVisitor {
 
         if (node.data.get("Param") == "true") // if there is a paramlist
         {
-            ASTParameterList cnode = (ASTParameterList) node.jjtGetChild(1); //this is the location it will be at if it exists
+            ASTParameterList cnode = (ASTParameterList) node.jjtGetChild(1); // this is the location it will be at if it
+                                                                             // exists
             int amount = cnode.jjtGetNumChildren();
             // node.data.get("PType");
             for (int i = 0; i < amount; i++) {
