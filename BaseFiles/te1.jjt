@@ -91,7 +91,7 @@ TOKEN : {
 	   <IDENTIFIER: (["_","a"-"z","A"-"Z","$"]) (["_","a"-"z","A"-"Z","0"-"9","$"])*>
 	|  <ICONSTANT: 	(["0"-"9"])+>
 	|  <SCONSTANT: 	"\"" (~["\"","\n"])* "\"">
-	|  <DCONSTANT: 	(["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])+)? (["d"] (["+","-"])? (["0"-"9"])*)?>
+	|  <DCONSTANT: 	(["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])*)? (["d"] (["+","-"])? (["0"-"9"])*)?>
 }
 
 ASTProgram program() #Program:
@@ -195,7 +195,7 @@ void parameter() #Parameter:
 void body() #Body :
 {/*Variable Declarations*/}
 {
-	(function() | procedure() | expression() | doLoop() | whileLoop() )* 
+	(function() | procedure() | expression() | whileLoop() )* 
 	{
 
 	}
@@ -221,60 +221,47 @@ void expression() #Expression :
 	{
 
 	}
-	| <K_RETURN> value() <K_SEMI> 
+	| LOOKAHEAD(doLoop()) 
+	doLoop() 
+	{
+
+	}
+	|<K_RETURN> value() <K_SEMI> 
 	{
 
 	}
 }
 
 void declaration() #Declaration :
-{ Token t; }
+{}
 {
 	LOOKAHEAD(4)
-	<K_INTEGER> t=<IDENTIFIER> <K_LBRACKET> <K_RBRACKET>
+	<K_INTEGER> declaredTerm() (<K_COMMA> declaredTerm())*
 	{
 		jjtThis.data.put("type","INTEGERARRAY");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer array");
+		System.out.println("Declared integer(s)");
 	}
 	| LOOKAHEAD(4)
-	<K_DOUBLE> t=<IDENTIFIER> <K_LBRACKET> <K_RBRACKET>
+	<K_DOUBLE> declaredTerm() (<K_COMMA> declaredTerm())*
 	{
 		jjtThis.data.put("type","DOUBLEARRAY");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared double array");
+		System.out.println("Declared double(s)");
 	}
 	| LOOKAHEAD(4)
-	<K_STRING> t=<IDENTIFIER> <K_LBRACKET> <K_RBRACKET>
+	<K_STRING> declaredTerm() (<K_COMMA> declaredTerm())*
 	{
 		jjtThis.data.put("type","STRINGARRAY");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared String array");
+		System.out.println("Declared String(s)");
 	}
-	| <K_INTEGER> t=<IDENTIFIER> (<K_ASSIGN> value())?
-	{
-		jjtThis.data.put("type","INTEGER");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer");
-	}
-	| <K_DOUBLE> t=<IDENTIFIER> (<K_ASSIGN> value())?
-	{
-		jjtThis.data.put("type","DOUBLE");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer");
-	}
-	| <K_STRING> t=<IDENTIFIER> (<K_ASSIGN> value())?
-	{
-		jjtThis.data.put("type","STRING");
-		jjtThis.data.put("value",t.image);
-		jjtThis.data.put("lineNo",t.beginLine);
-		System.out.println("Declared integer");
-	}
+}
+
+void declaredTerm() #DeclaredTerm :
+{}
+{
+	LOOKAHEAD(5) <IDENTIFIER> <K_ASSIGN> value() {}
+	| LOOKAHEAD(3)
+	<IDENTIFIER> <K_LBRACKET> <K_RBRACKET> {}
+	| <IDENTIFIER> {}
 }
 
 void assignment() #Assignment :
@@ -416,7 +403,7 @@ void valueList() #ValueList :
 void value() #Value :
 {Token t;}
 {
-	<K_LPAREN> value() <K_RPAREN> {}
+	<K_LPAREN> value() <K_RPAREN> (mathOperator() value())* {}
 	| atomicValue() (mathOperator() atomicValue())* {}
 }
 

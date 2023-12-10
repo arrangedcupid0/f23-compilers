@@ -232,7 +232,7 @@ public class TreeWalk implements CompilerVisitor {
         // TODO: still needs the ability to parse if you give it a variable to
         // initialize
         IndentCode();
-        fileText = fileText + typeStandard((String) node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
+        //fileText = fileText + typeStandard((String) node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
 
         // Print information about node
         System.out.println("-----");
@@ -243,6 +243,26 @@ public class TreeWalk implements CompilerVisitor {
 
         return null;
     }
+
+    public Object visit(ASTDeclaredTerm node, Object data) {
+        int ID = GetID();
+
+        // TODO: still needs the ability to parse if you give it a variable to
+        // initialize
+        IndentCode();
+        //fileText = fileText + typeStandard((String) node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
+
+        // Print information about node
+        System.out.println("-----");
+        System.out.println("** Node " + ID + ": Declared Term");
+        System.out.println("-----");
+
+        node.childrenAccept(this, data);
+
+        return null;
+    }
+
+
 
     public Object visit(ASTAssignment node, Object data) {
         int ID = GetID();
