@@ -275,31 +275,38 @@ void declaration() #Declaration :
 	}
 }
 
-void assignment() #Assignment :
+Token assignment() #Assignment :
 { Token val; Token var;}
 {
-	LOOKAHEAD(15) variable() assignOperator() value() {
+	LOOKAHEAD(15) var=variable() assignOperator() val=value() {
 		jjtThis.data.put("more", "yes");
 		System.out.println("Matched assignment with value");
+		return var;
 	}
-	| LOOKAHEAD(15) variable() <K_INCREMENT> {
+	| LOOKAHEAD(15) var=variable() <K_INCREMENT> {
 		jjtThis.data.put("more", "no");
 		jjtThis.data.put("assign", "++");
 		System.out.println("Matched ++");
+		return var;
 	}
-	| LOOKAHEAD(15) variable() <K_DECREMENT> {
+	| LOOKAHEAD(15) var=variable() <K_DECREMENT> {
 		jjtThis.data.put("more", "no");
 		jjtThis.data.put("assign", "--");
 		System.out.println("Matched --");
+		return var;
 	}
 
 }
 
-void variable() #Variable :
-{}
+Token variable() #Variable :
+{Token var;}
 {
-	LOOKAHEAD(2) <IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {}
-	|LOOKAHEAD(2) <IDENTIFIER> {}
+	LOOKAHEAD(2) var=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {
+		return var;
+	}
+	|LOOKAHEAD(2) var=<IDENTIFIER> {
+		return var;
+	}
 }
 
 void assignOperator() #AssignOperator :
@@ -414,13 +421,21 @@ Token value() #Value :
 void atomicValue() #AtomicValue :
 { Token t;}
 {
-	LOOKAHEAD(2) t=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {}
-	| LOOKAHEAD(definedCall()) definedCall() {jjtThis.data.put("Type","definedCall"); jjtThis.data.put("Value", "No Value");}
-	| LOOKAHEAD(assignment()) assignment() {jjtThis.data.put("Type","assignment"); jjtThis.data.put("Value", "No Value");}
-	| t=<ICONSTANT> {jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image);}
-	| t=<DCONSTANT> {jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image);}
-	| t=<SCONSTANT> {jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image);}
-	| t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image);}
+	LOOKAHEAD(2) t=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {
+		jjtThis.data.put("children", "yes");
+	}
+	| LOOKAHEAD(definedCall()) definedCall() {
+		jjtThis.data.put("Type","definedCall"); 
+		jjtThis.data.put("Value", "No Value"); 
+		jjtThis.data.put("children", "yes");}
+	| LOOKAHEAD(assignment()) assignment() {
+		jjtThis.data.put("Type","assignment"); 
+		jjtThis.data.put("Value", "No Value");
+		jjtThis.data.put("children", "yes");}
+	| t=<ICONSTANT> {jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image); return t;}
+	| t=<DCONSTANT> {jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image); return t;}
+	| t=<SCONSTANT> {jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image); return t;}
+	| t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image); return t;}
 }
 
 
