@@ -278,21 +278,28 @@ void declaration() #Declaration :
 void assignment() #Assignment :
 { Token val; Token var;}
 {
-	LOOKAHEAD(2) <IDENTIFIER> assignOperator() value() {
+	LOOKAHEAD(15) variable() assignOperator() value() {
 		jjtThis.data.put("more", "yes");
 		System.out.println("Matched assignment with value");
 	}
-	| LOOKAHEAD(2) <IDENTIFIER> <K_INCREMENT> {
+	| LOOKAHEAD(15) variable() <K_INCREMENT> {
 		jjtThis.data.put("more", "no");
 		jjtThis.data.put("assign", "++");
 		System.out.println("Matched ++");
 	}
-	| LOOKAHEAD(2) <IDENTIFIER> <K_DECREMENT> {
+	| LOOKAHEAD(15) variable() <K_DECREMENT> {
 		jjtThis.data.put("more", "no");
 		jjtThis.data.put("assign", "--");
 		System.out.println("Matched --");
 	}
 
+}
+
+void variable() #Variable :
+{}
+{
+	LOOKAHEAD(2) <IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {}
+	|LOOKAHEAD(2) <IDENTIFIER> {}
 }
 
 void assignOperator() #AssignOperator :
@@ -407,7 +414,8 @@ Token value() #Value :
 void atomicValue() #AtomicValue :
 { Token t;}
 {
-	LOOKAHEAD(definedCall()) definedCall() {jjtThis.data.put("Type","definedCall"); jjtThis.data.put("Value", "No Value");}
+	LOOKAHEAD(2) t=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {}
+	| LOOKAHEAD(definedCall()) definedCall() {jjtThis.data.put("Type","definedCall"); jjtThis.data.put("Value", "No Value");}
 	| LOOKAHEAD(assignment()) assignment() {jjtThis.data.put("Type","assignment"); jjtThis.data.put("Value", "No Value");}
 	| t=<ICONSTANT> {jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image);}
 	| t=<DCONSTANT> {jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image);}
