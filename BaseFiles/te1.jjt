@@ -195,7 +195,7 @@ void parameter() #Parameter:
 void body() #Body :
 {/*Variable Declarations*/}
 {
-	(function() | procedure() | expression() | doLoop() | whileLoop() | ifThen())* 
+	(function() | procedure() | expression() | doLoop() | whileLoop() )* 
 	{
 
 	}
@@ -204,7 +204,9 @@ void body() #Body :
 void expression() #Expression :
 { /*Variable Declrations*/ }
 {
-	LOOKAHEAD(declaration())
+	LOOKAHEAD(ifThen())
+	ifThen() {}
+	| LOOKAHEAD(declaration())
 	declaration() <K_SEMI>
 	{
 		jjtThis.data.put("type","Variable Declaration");
@@ -275,37 +277,37 @@ void declaration() #Declaration :
 	}
 }
 
-Token assignment() #Assignment :
+void assignment() #Assignment :
 { Token val; Token var;}
 {
-	LOOKAHEAD(15) var=variable() assignOperator() val=value() {
+	LOOKAHEAD(15) variable() assignOperator() value() {
 		jjtThis.data.put("more", "yes");
 		System.out.println("Matched assignment with value");
-		return var;
+		
 	}
-	| LOOKAHEAD(15) var=variable() <K_INCREMENT> {
+	| LOOKAHEAD(15) variable() <K_INCREMENT> {
 		jjtThis.data.put("more", "no");
 		jjtThis.data.put("assign", "++");
 		System.out.println("Matched ++");
-		return var;
+		
 	}
-	| LOOKAHEAD(15) var=variable() <K_DECREMENT> {
+	| LOOKAHEAD(15) variable() <K_DECREMENT> {
 		jjtThis.data.put("more", "no");
 		jjtThis.data.put("assign", "--");
 		System.out.println("Matched --");
-		return var;
+		
 	}
 
 }
 
-Token variable() #Variable :
+void variable() #Variable :
 {Token var;}
 {
 	LOOKAHEAD(2) var=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {
-		return var;
+		
 	}
 	|LOOKAHEAD(2) var=<IDENTIFIER> {
-		return var;
+		
 	}
 }
 
@@ -350,10 +352,10 @@ void functionCall() #FunctionCall :
 void printCall() #PrintCall :
 { Token t; }
 {
-	<K_PRINT_INTEGER> <K_LPAREN> t=value() <K_RPAREN> 
+	<K_PRINT_INTEGER> <K_LPAREN> value() <K_RPAREN> 
 	{
 		jjtThis.data.put("printType", "int");
-		jjtThis.data.put("printVal", t.image);
+		jjtThis.data.put("printVal", "printVal");
 		System.out.println("Printing int");
 	}
 	| <K_PRINT_DOUBLE> <K_LPAREN> value() <K_RPAREN> 
@@ -411,31 +413,31 @@ void valueList() #ValueList :
 }
 
 
-Token value() #Value :
+void value() #Value :
 {Token t;}
 {
-	<K_LPAREN> t=value() <K_RPAREN> {}
+	<K_LPAREN> value() <K_RPAREN> {}
 	| atomicValue() (mathOperator() atomicValue())* {}
 }
 
 void atomicValue() #AtomicValue :
 { Token t;}
 {
-	LOOKAHEAD(2) t=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {
+	LOOKAHEAD(2) (<K_MINUS>)? t=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {
 		jjtThis.data.put("children", "yes");
 	}
-	| LOOKAHEAD(definedCall()) definedCall() {
+	| LOOKAHEAD((<K_MINUS>)? definedCall()) (<K_MINUS>)? definedCall() {
 		jjtThis.data.put("Type","definedCall"); 
 		jjtThis.data.put("Value", "No Value"); 
 		jjtThis.data.put("children", "yes");}
-	| LOOKAHEAD(assignment()) assignment() {
+	| LOOKAHEAD((<K_MINUS>)? assignment()) (<K_MINUS>)? assignment() {
 		jjtThis.data.put("Type","assignment"); 
 		jjtThis.data.put("Value", "No Value");
 		jjtThis.data.put("children", "yes");}
-	| t=<ICONSTANT> {jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image); return t;}
-	| t=<DCONSTANT> {jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image); return t;}
-	| t=<SCONSTANT> {jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image); return t;}
-	| t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image); return t;}
+	| (<K_MINUS>)? t=<ICONSTANT> {jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image);}
+	| (<K_MINUS>)? t=<DCONSTANT> {jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image);}
+	| (<K_MINUS>)? t=<SCONSTANT> {jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image);}
+	| (<K_MINUS>)? t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image);}
 }
 
 
@@ -490,7 +492,7 @@ void mathOperator() #MathOperator :
 void doLoop() #DoLoop :
 { /*Variable Declarations*/ }
 {
-	<K_DO> <K_LPAREN> assignment() <K_SEMI> predicate() <K_SEMI> assignment() <K_SEMI> <K_RPAREN> statementBlock()
+	<K_DO> <K_LPAREN> assignment() <K_SEMI> predicate() <K_SEMI> assignment() (<K_SEMI>)? <K_RPAREN> statementBlock()
 	{
 		
 	}
@@ -508,8 +510,7 @@ void whileLoop() #WhileLoop :
 void ifThen() #IfThen :
 { /*Variable Declrations*/ }
 {
-	<K_IF> <K_LPAREN> predicate() <K_RPAREN> <K_THEN> statementBlock() 
-	(<K_ELSE> <K_IF> <K_LPAREN> predicate() <K_RPAREN> <K_THEN> statementBlock())* 
+	<K_IF> <K_LPAREN> predicate() <K_RPAREN> <K_THEN> statementBlock()  
 	(<K_ELSE> statementBlock())?
 	{
 

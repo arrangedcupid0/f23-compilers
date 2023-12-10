@@ -289,6 +289,29 @@ public class TreeWalk implements CompilerVisitor {
         return null;
     }
 
+    public Object visit(ASTVariable node, Object data) {
+        int ID = GetID();
+        // String VarID = (String) node.data.get("variable");
+        // String VarType = (String) node.data.get("type");
+        // Object VarValue = (String) node.data.get("value");
+        // int lineOfDecl = (int) node.data.get("lineNo");
+
+        // if (symbolTable.get(VarID) != null) {
+        // lineOfDecl = (int) symbolTable.get(VarID).LineOfDecl;
+        // }
+        // this way, we should be able to get the exact operator that we need
+        IndentCode();
+        // fileText += VarID + " " + node.data.get("assign") + " " + VarValue + ";\r\n";
+        // Print information about node
+        System.out.println("-----");
+        System.out.println("** Node " + ID + ": Variable");
+        System.out.println("-----");
+
+        node.childrenAccept(this, data);
+
+        return null;
+    }
+
     public Object visit(ASTAssignOperator node, Object data) {
         int ID = GetID();
         // String VarID = (String) node.data.get("variable");

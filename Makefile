@@ -14,7 +14,7 @@ gen: Generated/te1.jj
 comp:
 	javac -d Compiled Generated/*.java
 
-run: run_te1 run_te2
+run: run_te1 run_te2 run_mg
 
 run_te1: Input/te1.f23
 	java -cp Compiled Compiler < Input/te1.f23
