@@ -1,0 +1,5 @@
+int main(){
+null     int i;
+    printf("%d", null);
+    return 0;
+}

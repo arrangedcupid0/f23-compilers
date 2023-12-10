@@ -24,6 +24,11 @@ run_te2: Input/te2.f23
 	java -cp Compiled Compiler < Input/te2.f23
 	ren .\Output\filename.txt te2.h
 
+run_mg: Input/mg.f23
+	java -cp Compiled Compiler < Input/mg.f23
+	ren .\Output\filename.txt mg.h
+
+
 clean: 
 	del /q .\Generated\*
 	del /q .\Compiled\*
