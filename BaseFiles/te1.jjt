@@ -423,16 +423,16 @@ void value() #Value :
 void atomicValue() #AtomicValue :
 { Token t;}
 {
-	LOOKAHEAD(2) (<K_MINUS>)? t=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {
+	LOOKAHEAD((<K_MINUS>)? assignment()) (<K_MINUS>)? assignment() {
+		jjtThis.data.put("Type","assignment"); 
+		jjtThis.data.put("Value", "No Value");
+		jjtThis.data.put("children", "yes");}
+	| LOOKAHEAD(2) (<K_MINUS>)? t=<IDENTIFIER> <K_LBRACKET> value() <K_RBRACKET> {
 		jjtThis.data.put("children", "yes");
 	}
 	| LOOKAHEAD((<K_MINUS>)? definedCall()) (<K_MINUS>)? definedCall() {
 		jjtThis.data.put("Type","definedCall"); 
 		jjtThis.data.put("Value", "No Value"); 
-		jjtThis.data.put("children", "yes");}
-	| LOOKAHEAD((<K_MINUS>)? assignment()) (<K_MINUS>)? assignment() {
-		jjtThis.data.put("Type","assignment"); 
-		jjtThis.data.put("Value", "No Value");
 		jjtThis.data.put("children", "yes");}
 	| (<K_MINUS>)? t=<ICONSTANT> {jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image);}
 	| (<K_MINUS>)? t=<DCONSTANT> {jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image);}
