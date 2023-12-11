@@ -93,3 +93,13 @@ TOKEN : {
 	|  <SCONSTANT: 	"\"" (~["\"","\n"])* "\"">
 	|  <DCONSTANT: 	(["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])*)? (["d"] (["+","-"])? (["0"-"9"])*)?>
 }
+
+ASTProgram program() #Program:
+{ /*Variable Declarations*/ }
+{
+  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> programBody() <K_RCURLY>
+  	{ 
+		System.out.println("Match program");
+		return jjtThis; 
+	}
+}
