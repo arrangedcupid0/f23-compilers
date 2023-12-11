@@ -1,0 +1,95 @@
+options {
+   MULTI=true;
+   VISITOR=true;
+   NODE_DEFAULT_VOID=true;
+   NODE_EXTENDS="BaseNode";
+   JJTREE_OUTPUT_DIRECTORY = "Generated";
+   OUTPUT_DIRECTORY = "Generated";
+}
+
+PARSER_BEGIN(Compiler)
+
+public class Compiler {
+
+  public static void main(String args[]) throws Exception {
+    //Compiler parser = new Compiler(new java.io.FileReader(args[0]));
+    Compiler parser = new Compiler(System.in);
+    ASTProgram expr=parser.program();
+    TreeWalk v=new TreeWalk();
+    expr.jjtAccept(v,null);
+  }
+}
+
+PARSER_END(Compiler)
+
+SKIP :
+{
+	" " 
+	|"\t"
+	|"\n"
+	|"\r"
+	|"\f"
+	| <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
+}
+
+TOKEN:
+{
+		<K_DO: 				"do" >
+	|	<K_DOUBLE: 			"double">
+	|	<K_ELSE: 			"else">
+	|	<K_EXIT:			"exit">
+	|	<K_FUNCTION:		"function">
+	|	<K_IF: 				"if">
+	|	<K_INTEGER: 		"integer">
+	|	<K_PRINT_DOUBLE: 	"print_double">
+	|	<K_PRINT_INTEGER: 	"print_integer">
+	|	<K_PRINT_STRING: 	"print_string">
+	|	<K_PROCEDURE: 		"procedure">
+	|	<K_PROGRAM: 		"program">
+	|	<K_READ_DOUBLE: 	"read_double">
+	|	<K_READ_INTEGER: 	"read_integer">
+	|	<K_READ_STRING: 	"read_string">
+	|	<K_RETURN: 			"return">
+	|	<K_STRING: 			"string">
+	|	<K_THEN: 			"then">
+	|	<K_WHILE: 			"while">
+	|	<K_ASSIGN: 			":=">
+	|	<K_ASSIGN_PLUS: 		"+=">
+	|	<K_ASSIGN_MINUS: 		"-=">
+	|	<K_ASSIGN_MULTIPLY: 	"*=">
+	|	<K_ASSIGN_DIVIDE: 	"/=">
+	|	<K_ASSIGN_MOD: 		"%=">
+	|	<K_COMMA: 			",">
+	|	<K_COMMENT: 			"//">
+	|	<K_DAND: 				"&&">
+	|	<K_DIVIDE: 			"/">
+	|	<K_DOR: 				"||">
+	|	<K_DEQ: 				"==">
+	|	<K_GEQ: 				">=">
+	|	<K_GT: 				">">
+	|	<K_LBRACKET: 			"[">
+	|	<K_LEQ: 				"<=">
+	|	<K_LCURLY: 			"{">
+	|	<K_LPAREN: 			"(">
+	|	<K_LT: 				"<">
+	|	<K_MINUS: 			"-">
+	|	<K_DECREMENT: 		"--">
+	|	<K_MOD: 				"%">
+	|	<K_MULTIPLY: 			"*">
+	|	<K_NE: 				"!=">
+	|	<K_NOT: 				"!">
+	|	<K_PERIOD: 			".">
+	|	<K_PLUS: 				"+">
+	| 	<K_INCREMENT: 		"++">
+	| 	<K_RBRACKET: 			"]">
+	| 	<K_RCURLY: 			"}">
+	| 	<K_RPAREN: 			")">
+	| 	<K_SEMI: 				";">
+}
+
+TOKEN : {
+	   <IDENTIFIER: (["_","a"-"z","A"-"Z","$"]) (["_","a"-"z","A"-"Z","0"-"9","$"])*>
+	|  <ICONSTANT: 	(["0"-"9"])+>
+	|  <SCONSTANT: 	"\"" (~["\"","\n"])* "\"">
+	|  <DCONSTANT: 	(["0"-"9"])* ["."] (["0"-"9"])* | (["0"-"9"])+ (["."] (["0"-"9"])*)? (["d"] (["+","-"])? (["0"-"9"])*)?>
+}
