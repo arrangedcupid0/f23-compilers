@@ -97,9 +97,73 @@ TOKEN : {
 ASTProgram program() #Program:
 { /*Variable Declarations*/ }
 {
-  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> programBody() <K_RCURLY>
-  	{ 
-		System.out.println("Match program");
-		return jjtThis; 
-	}
+  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (functionDeclaration() | procedureDeclaration())* <K_RCURLY> {}
+}
+
+void functionDeclaration() #FunctionDeclaration :
+{}
+{
+	<K_FUNCTION> type() <IDENTIFIER> parameterList() block() {}
+}
+
+void procedureDeclaration() #procedureDeclaration :
+{}
+{
+    <K_PROCEDURE> <IDENTIFIER> parameterList() block() {}
+}
+
+void parameterList() #ParameterList:
+{ /*Variable Declarations*/ }
+{
+	<K_LPAREN> ( parameter() ( <K_COMMA> parameter() )* )? <K_RPAREN>
+}
+
+void parameter() #Parameter:
+{ /*Variable Declarations*/ }
+{
+	type() variableDeclaratorId()
+}
+
+void variableDeclarator() #VariableDeclarator:
+{ /*Variable Declarations*/ }
+{
+	variableDeclaratorId() (<K_ASSIGN> expression())?
+}
+
+void variableDeclaratorId() #VariableDeclaratorId:
+{ /*Variable Declarations*/ }
+{
+	<IDENTIFIER> ( <K_LBRACKET> <K_RBRACKET> )*
+}
+
+void type() #type:
+{ /*Variable Declarations*/ }
+{
+	<K_INTEGER>
+	| <K_DOUBLE>
+	| <K_STRING>
+}
+
+void block() #Block:
+{ /*Variable Declarations*/ }
+{
+	<K_LCURLY> (Statement())* <K_RCURLY>
+}
+
+void statement() #Statement:
+{ /*Variable Declarations*/ }
+{
+	Block()
+	| EmptyStatement()
+	| StatementExpression() <K_SEMI>
+	| IfStatement()
+	| WhileStatement()
+	| DoStatement()
+	| ReturnStatement()
+}
+
+void expression() #Expression:
+{ /*Variable Declarations*/ }
+{
+	ConditionalExpression ( AssignmentOperator Expression )?
 }
