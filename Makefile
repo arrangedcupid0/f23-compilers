@@ -14,13 +14,21 @@ gen: Generated/fresh.jj
 comp:
 	javac -d Compiled Generated/*.java
 
-run: run_te1 run_te2 run_mg
+run: run_te1 run_te2 run_te3 run_te4 run_mg
 
 run_te1: Input/te1.f23
 	java -cp Compiled Compiler < Input/te1.f23
 #ren .\Output\filename.txt te1.h
 
 run_te2: Input/te2.f23
+	java -cp Compiled Compiler < Input/te2.f23
+#ren .\Output\filename.txt te2.h
+
+run_te3: Input/te3.f23
+	java -cp Compiled Compiler < Input/te1.f23
+#ren .\Output\filename.txt te1.h
+
+run_te4: Input/te4.f23
 	java -cp Compiled Compiler < Input/te2.f23
 #ren .\Output\filename.txt te2.h
 
