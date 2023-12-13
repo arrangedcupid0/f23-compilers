@@ -15,8 +15,8 @@ public class Compiler {
     //Compiler parser = new Compiler(new java.io.FileReader(args[0]));
     Compiler parser = new Compiler(System.in);
     ASTProgram expr=parser.program();
-    TreeWalk v=new TreeWalk();
-    expr.jjtAccept(v,null);
+    //TreeWalk v=new TreeWalk();
+    //expr.jjtAccept(v,null);
   }
 }
 
@@ -95,75 +95,277 @@ TOKEN : {
 }
 
 ASTProgram program() #Program:
-{ /*Variable Declarations*/ }
+{ /*Variable Declarations*/ System.out.println("Program");}
 {
-  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (functionDeclaration() | procedureDeclaration())* <K_RCURLY> {}
+  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (functionDeclaration() | procedureDeclaration())* <K_RCURLY> {return jjtThis;}
 }
 
 void functionDeclaration() #FunctionDeclaration :
-{}
+{System.out.println("FunctionDeclaration");}
 {
 	<K_FUNCTION> type() <IDENTIFIER> parameterList() block() {}
 }
 
 void procedureDeclaration() #procedureDeclaration :
-{}
+{System.out.println("procedureDeclaration");}
 {
     <K_PROCEDURE> <IDENTIFIER> parameterList() block() {}
 }
 
 void parameterList() #ParameterList:
-{ /*Variable Declarations*/ }
+{ /*Variable Declarations*/ System.out.println("ParameterList");}
 {
 	<K_LPAREN> ( parameter() ( <K_COMMA> parameter() )* )? <K_RPAREN>
 }
 
 void parameter() #Parameter:
-{ /*Variable Declarations*/ }
+{ /*Variable Declarations*/ System.out.println("Parameter");}
 {
 	type() variableDeclaratorId()
 }
 
 void variableDeclarator() #VariableDeclarator:
-{ /*Variable Declarations*/ }
+{ /*Variable Declarations*/ System.out.println("VariableDeclarator");}
 {
 	variableDeclaratorId() (<K_ASSIGN> expression())?
 }
 
 void variableDeclaratorId() #VariableDeclaratorId:
-{ /*Variable Declarations*/ }
+{ /*Variable Declarations*/ System.out.println("VariableDeclaratorId");}
 {
-	<IDENTIFIER> ( <K_LBRACKET> <K_RBRACKET> )*
+	<IDENTIFIER> ( <K_LBRACKET> (expression())? <K_RBRACKET> )*
 }
 
 void type() #type:
-{ /*Variable Declarations*/ }
+{ /*Variable Declarations*/ System.out.println("type");}
 {
 	<K_INTEGER>
 	| <K_DOUBLE>
 	| <K_STRING>
 }
 
-void block() #Block:
-{ /*Variable Declarations*/ }
+void statement() #Statement:
+{ /*Variable Declarations*/ System.out.println("Statement");}
 {
-	<K_LCURLY> (Statement())* <K_RCURLY>
+	block()
+	| statementExpression() <K_SEMI>
+	| ifStatement()
+	| whileStatement()
+	| doStatement()
+	| returnStatement()
+	| printStatement()
+	| readStatement()
 }
 
-void statement() #Statement:
-{ /*Variable Declarations*/ }
+void block() #Block:
+{ /*Variable Declarations*/ System.out.println("Block");}
 {
-	Block()
-	| EmptyStatement()
-	| StatementExpression() <K_SEMI>
-	| IfStatement()
-	| WhileStatement()
-	| DoStatement()
-	| ReturnStatement()
+	<K_LCURLY> (blockStatement())* <K_RCURLY>
+}
+
+void blockStatement() #BlockStatement:
+{ /*Variable Declarations*/ System.out.println("BlockStatement");}
+{
+	localVariableDeclaration() <K_SEMI>
+	| statement()
+	| procedureDeclaration()
+	| functionDeclaration()
+}
+
+void localVariableDeclaration() #LocalVariableDeclaration:
+{ /*Variable Declarations*/ System.out.println("LocalVariableDeclaration");}
+{
+	type() variableDeclarator() (<K_COMMA> variableDeclarator())*
+}
+
+
+void statementExpression() #StatementExpression :
+{ /*Variable Declarations*/ System.out.println("StatementExpression");}
+{
+	primaryExpression() ( <K_INCREMENT>| <K_DECREMENT> | assignmentOperator() expression() )?
+}
+
+void ifStatement() #IfStatement :
+{ /*Variable Declarations*/ System.out.println("IfStatement");}
+{
+	<K_IF> <K_LPAREN> expression() <K_RPAREN> <K_THEN> statement() ( <K_ELSE> statement() )?
+}
+
+void whileStatement() #WhileStatement:
+{ /*Variable Declarations*/ System.out.println("WhileStatement");}
+{
+	<K_WHILE> <K_LPAREN> expression() <K_RPAREN> statement()
+}
+
+void doStatement() #DoStatement:
+{ /*Variable Declarations*/ System.out.println("DoStatement");}
+{
+	<K_DO> <K_LPAREN> ( doInit() )? <K_SEMI> ( expression() )? <K_SEMI> (statementExpressionList())? <K_RPAREN> statement()
+}
+void doInit() #DoInit:
+{ /*Variable Declarations*/ System.out.println("DoInit");}
+{
+	localVariableDeclaration() | statementExpressionList()
+}
+
+void statementExpressionList() #StatementExpressionList :
+{ /*Variable Declarations*/ System.out.println("StatementExpressionList");}
+{
+	statementExpression() ( <K_COMMA> statementExpression() )*
+}
+
+void returnStatement() #ReturnStatement :
+{ /*Variable Declarations*/ System.out.println("ReturnStatement"); }
+{
+	<K_RETURN> ( expression() )? <K_SEMI>
+}
+
+void printStatement() #PrintStatement:
+{ /*Variable Declarations*/ System.out.println("PrintStatement");}
+{
+	printIntStatement()
+	| printDoubleStatement()
+	| printStringStatement()
+}
+
+void printIntStatement() #PrintIntStatement:
+{ /*Variable Declarations*/ System.out.println("PrintIntStatement");}
+{
+	<K_PRINT_INTEGER> <K_LPAREN> expression() <K_RPAREN> <K_SEMI>
+}
+
+void printDoubleStatement() #PrintDoubleStatement:
+{ /*Variable Declarations*/ System.out.println("PrintDoubleStatement"); }
+{
+	<K_PRINT_DOUBLE> <K_LPAREN> expression() <K_RPAREN> <K_SEMI>
+}
+
+void printStringStatement() #PrintStringStatement:
+{ /*Variable Declarations*/ System.out.println("PrintStringStatement"); }
+{
+	<K_PRINT_STRING> <K_LPAREN> expression() <K_RPAREN> <K_SEMI>
+}
+
+void readStatement() #ReadStatement:
+{ /*Variable Declarations*/ System.out.println("ReadStatement");}
+{
+	readIntStatement()
+	| readDoubleStatement()
+	| readStringStatement()
+}
+
+void readIntStatement() #ReadIntStatement:
+{ /*Variable Declarations*/ System.out.println("ReadIntStatement");}
+{
+	<K_READ_INTEGER> <K_LPAREN> <IDENTIFIER> <K_RPAREN> <K_SEMI>
+}
+
+void readDoubleStatement() #ReadDoubleStatement:
+{ /*Variable Declarations*/ System.out.println("ReadDoubleStatement"); }
+{
+	<K_READ_DOUBLE> <K_LPAREN> <IDENTIFIER> <K_RPAREN> <K_SEMI>
+}
+
+void readStringStatement() #ReadStringStatement:
+{ /*Variable Declarations*/ System.out.println("ReadStringStatement"); }
+{
+	<K_READ_STRING> <K_LPAREN> <IDENTIFIER> <K_RPAREN> <K_SEMI>
 }
 
 void expression() #Expression:
-{ /*Variable Declarations*/ }
+{ /*Variable Declarations*/ System.out.println("Expression");}
 {
-	ConditionalExpression ( AssignmentOperator Expression )?
+	conditionalOrExpression() ( assignmentOperator() expression() )?
+}
+
+void assignmentOperator() #AssignmentOperator:
+{ /*Variable Declarations*/ System.out.println("AssignmentOperator");}
+{
+	<K_ASSIGN>
+	| <K_ASSIGN_DIVIDE>
+	| <K_ASSIGN_MINUS>
+	| <K_ASSIGN_MOD>
+	| <K_ASSIGN_MULTIPLY>
+	| <K_ASSIGN_PLUS>
+}
+
+void conditionalOrExpression() #ConditionalOrExpression:
+{ /*Variable Declarations*/ System.out.println("ConditionalOrExpression");}
+{
+	conditionalAndExpression() ( <K_DOR> conditionalAndExpression() )*
+}
+
+void conditionalAndExpression() #ConditionalAndExpression:
+{ /*Variable Declarations*/ System.out.println("ConditionalAndExpression");}
+{
+	equalityExpression()  (<K_DAND> equalityExpression())*
+}
+
+void equalityExpression() #EqualityExpression:
+{ /*Variable Declarations*/ System.out.println("EqualityExpression");}
+{
+	relationalExpression() (( <K_DEQ> | <K_NE> ) relationalExpression())*
+}
+
+void relationalExpression() #RelationalExpression :
+{ /*Variable Declarations*/ System.out.println("RelationalExpression");}
+{
+	additiveExpression() ( ( <K_LT> | <K_GT> | <K_LEQ> | <K_GEQ> ) additiveExpression() )*
+}
+
+void additiveExpression() #AdditiveExpression:
+{ /*Variable Declarations*/ System.out.println("AdditiveExpression");}
+{
+	multiplicativeExpression() (( <K_PLUS> | <K_MINUS> ) multiplicativeExpression())*
+}
+void multiplicativeExpression() #MultiplicativeExpression:
+{ /*Variable Declarations*/ System.out.println("MultiplicativeExpression");}
+{
+	unaryExpression() ((<K_MULTIPLY> | <K_DIVIDE> | <K_MOD>) unaryExpression())*
+}
+void unaryExpression() #UnaryExpression:
+{ /*Variable Declarations*/ System.out.println("MultiplicativeExpression");}
+{
+	(<K_PLUS> | <K_MINUS> | <K_NOT>) unaryExpression()
+	| postfixExpression()
+}
+void postfixExpression() #PostfixExpression:
+{ /*Variable Declarations*/ System.out.println("PostfixExpression");}
+{
+	primaryExpression() ( <K_INCREMENT> | <K_DECREMENT> )?
+}
+void primaryExpression() #PrimaryExpression:
+{ /*Variable Declarations*/ System.out.println("PrimaryExpression");}
+{
+	primaryPrefix() (primarySuffix())*
+}
+void primaryPrefix() #PrimaryPrefix:
+{ /*Variable Declarations*/ System.out.println("PrimaryPrefix");}
+{
+	literal() 
+	| <K_LPAREN> expression() <K_RPAREN>
+}
+void primarySuffix() #PrimarySuffix:
+{ /*Variable Declarations*/ System.out.println("PrimarySuffix");}
+{
+	<K_LBRACKET> expression() <K_RBRACKET>
+	| arguments()
+}
+void literal() #Literal:
+{ /*Variable Declarations*/ System.out.println("Literal");}
+{
+	<IDENTIFIER>
+	| <ICONSTANT>
+	| <DCONSTANT>
+	| <SCONSTANT>
+}
+void arguments() #Arguments:
+{ /*Variable Declarations*/ System.out.println("Arguments");}
+{
+	<K_LPAREN> (argumentList())? <K_RPAREN>
+}
+void argumentList() #ArgumentList:
+{ /*Variable Declarations*/ System.out.println("argumentList");}
+{
+	expression() (<K_COMMA> expression())*
 }
