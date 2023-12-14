@@ -100,13 +100,13 @@ ASTProgram program() #Program:
   <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (functionDeclaration() | procedureDeclaration())* <K_RCURLY> {return jjtThis;}
 }
 
-void functionDeclaration() #FunctionDeclaration :
+void functionDeclaration() #FunctionDeclaration:
 {System.out.println("FunctionDeclaration");}
 {
 	<K_FUNCTION> type() <IDENTIFIER> parameterList() block() {}
 }
 
-void procedureDeclaration() #procedureDeclaration :
+void procedureDeclaration() #ProcedureDeclaration:
 {System.out.println("procedureDeclaration");}
 {
     <K_PROCEDURE> <IDENTIFIER> parameterList() block() {}
@@ -136,7 +136,7 @@ void variableDeclaratorId() #VariableDeclaratorId:
 	<IDENTIFIER> ( <K_LBRACKET> (expression())? <K_RBRACKET> )*
 }
 
-void type() #type:
+void type() #Type:
 { /*Variable Declarations*/ System.out.println("type");}
 {
 	<K_INTEGER>
