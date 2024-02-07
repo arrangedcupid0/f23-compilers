@@ -3,7 +3,7 @@ import java.util.LinkedList;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class TreeWalk implements CompilerVisitor {
+public class SymbolTable implements CompilerVisitor {
 
     // ################## Variables ##################
     private int IDcounter = 0;
