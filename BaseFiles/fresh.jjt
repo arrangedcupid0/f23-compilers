@@ -95,21 +95,21 @@ TOKEN : {
 }
 
 ASTProgram program() #Program:
-{ /*Variable Declarations*/ System.out.println("Program");}
+{ Token t; System.out.println("Program");}
 {
-  <K_PROGRAM> <IDENTIFIER> <K_LCURLY> (functionDeclaration() | procedureDeclaration())* <K_RCURLY> {return jjtThis;}
+  <K_PROGRAM> t=<IDENTIFIER>{jjtThis.data.put("Value", t.image);} <K_LCURLY> (functionDeclaration() | procedureDeclaration())* <K_RCURLY> {return jjtThis;}
 }
 
 void functionDeclaration() #FunctionDeclaration:
-{System.out.println("FunctionDeclaration");}
+{Token t; System.out.println("FunctionDeclaration");}
 {
-	<K_FUNCTION> type() <IDENTIFIER> parameterList() block() {}
+	<K_FUNCTION> type() t=<IDENTIFIER>{jjtThis.data.put("Value", t.image);} parameterList() block() {}
 }
 
 void procedureDeclaration() #ProcedureDeclaration:
-{System.out.println("procedureDeclaration");}
+{Token t; System.out.println("procedureDeclaration");}
 {
-    <K_PROCEDURE> <IDENTIFIER> parameterList() block() {}
+    <K_PROCEDURE> t=<IDENTIFIER>{jjtThis.data.put("Value", t.image);} parameterList() block() {}
 }
 
 void parameterList() #ParameterList:
@@ -131,17 +131,17 @@ void variableDeclarator() #VariableDeclarator:
 }
 
 void variableDeclaratorId() #VariableDeclaratorId:
-{ /*Variable Declarations*/ System.out.println("VariableDeclaratorId");}
+{ Token t; System.out.println("VariableDeclaratorId");}
 {
-	<IDENTIFIER> ( <K_LBRACKET> (expression())? <K_RBRACKET> )*
+	t=<IDENTIFIER> {jjtThis.data.put("Value", t.image);}( <K_LBRACKET> (expression())? <K_RBRACKET> )*
 }
 
 void type() #Type:
-{ /*Variable Declarations*/ System.out.println("type");}
+{  System.out.println("type");}
 {
-	<K_INTEGER>
-	| <K_DOUBLE>
-	| <K_STRING>
+	<K_INTEGER> {jjtThis.data.put("Type","INTEGER");}
+	| <K_DOUBLE>{jjtThis.data.put("Type","DOUBLE");}
+	| <K_STRING>{jjtThis.data.put("Type","STRING");}
 }
 
 void statement() #Statement:
@@ -180,9 +180,11 @@ void localVariableDeclaration() #LocalVariableDeclaration:
 
 
 void statementExpression() #StatementExpression :
-{ /*Variable Declarations*/ System.out.println("StatementExpression");}
+{  	int i =1;
+	Token t; 
+	System.out.println("StatementExpression");}
 {
-	primaryExpression() ( <K_INCREMENT>| <K_DECREMENT> | assignmentOperator() expression() )?
+	primaryExpression() ( t=<K_INCREMENT>{jjtThis.data.put(i,"INCREMENT"); i++;} | t=<K_DECREMENT>{jjtThis.data.put(i,"DECREMENT"); i++;} | assignmentOperator() expression() )?
 }
 
 void ifStatement() #IfStatement :
@@ -255,21 +257,21 @@ void readStatement() #ReadStatement:
 }
 
 void readIntStatement() #ReadIntStatement:
-{ /*Variable Declarations*/ System.out.println("ReadIntStatement");}
+{ Token t; System.out.println("ReadIntStatement");}
 {
-	<K_READ_INTEGER> <K_LPAREN> <IDENTIFIER> <K_RPAREN> <K_SEMI>
+	<K_READ_INTEGER> <K_LPAREN>  t=<IDENTIFIER> {jjtThis.data.put("Value", t.image);} <K_RPAREN> <K_SEMI>
 }
 
 void readDoubleStatement() #ReadDoubleStatement:
-{ /*Variable Declarations*/ System.out.println("ReadDoubleStatement"); }
+{ Token t; System.out.println("ReadDoubleStatement"); }
 {
-	<K_READ_DOUBLE> <K_LPAREN> <IDENTIFIER> <K_RPAREN> <K_SEMI>
+	<K_READ_DOUBLE> <K_LPAREN>  t=<IDENTIFIER> {jjtThis.data.put("Value", t.image);} <K_RPAREN> <K_SEMI>
 }
 
 void readStringStatement() #ReadStringStatement:
-{ /*Variable Declarations*/ System.out.println("ReadStringStatement"); }
+{ Token t; System.out.println("ReadStringStatement"); }
 {
-	<K_READ_STRING> <K_LPAREN> <IDENTIFIER> <K_RPAREN> <K_SEMI>
+	<K_READ_STRING> <K_LPAREN> t=<IDENTIFIER> {jjtThis.data.put("Value", t.image);} <K_RPAREN> <K_SEMI>
 }
 
 void expression() #Expression:
@@ -279,14 +281,14 @@ void expression() #Expression:
 }
 
 void assignmentOperator() #AssignmentOperator:
-{ /*Variable Declarations*/ System.out.println("AssignmentOperator");}
+{ Token t; System.out.println("AssignmentOperator");}
 {
-	<K_ASSIGN>
-	| <K_ASSIGN_DIVIDE>
-	| <K_ASSIGN_MINUS>
-	| <K_ASSIGN_MOD>
-	| <K_ASSIGN_MULTIPLY>
-	| <K_ASSIGN_PLUS>
+	t=<K_ASSIGN> 			{jjtThis.data.put("Assignment","ASSIGN");}
+	| t=<K_ASSIGN_DIVIDE> 	{jjtThis.data.put("Assignment","DIVIDE");}
+	| t=<K_ASSIGN_MINUS> 	{jjtThis.data.put("Assignment","MINUS");}
+	| t=<K_ASSIGN_MOD> 		{jjtThis.data.put("Assignment","MOD");}
+	| t=<K_ASSIGN_MULTIPLY> {jjtThis.data.put("Assignment","MULTIPLY");}
+	| t=<K_ASSIGN_PLUS> 	{jjtThis.data.put("Assignment","PLUS");}
 }
 
 void conditionalOrExpression() #ConditionalOrExpression:
@@ -302,37 +304,45 @@ void conditionalAndExpression() #ConditionalAndExpression:
 }
 
 void equalityExpression() #EqualityExpression:
-{ /*Variable Declarations*/ System.out.println("EqualityExpression");}
+{ 	int i =1;
+	Token t; 
+	System.out.println("EqualityExpression");}
 {
-	relationalExpression() (( <K_DEQ> | <K_NE> ) relationalExpression())*
+	relationalExpression() (( t=<K_DEQ> {jjtThis.data.put(i,"DEQ"); i++;}| t=<K_NE> {jjtThis.data.put(i,"NE"); i++;}) relationalExpression())*
 }
 
 void relationalExpression() #RelationalExpression :
-{ /*Variable Declarations*/ System.out.println("RelationalExpression");}
+{ 	int i =1;
+	Token t; 
+	System.out.println("RelationalExpression");}
 {
-	additiveExpression() ( ( <K_LT> | <K_GT> | <K_LEQ> | <K_GEQ> ) additiveExpression() )*
+	additiveExpression() ( ( t=<K_LT> {jjtThis.data.put(i,"LT"); i++;}| t=<K_GT> {jjtThis.data.put(i,"GT"); i++;}| t=<K_LEQ> {jjtThis.data.put(i,"LEQ"); i++;}| t=<K_GEQ> {jjtThis.data.put(i,"GEQ"); i++;}) additiveExpression() )*
 }
 
 void additiveExpression() #AdditiveExpression:
-{ /*Variable Declarations*/ System.out.println("AdditiveExpression");}
+{	int i =1;
+	Token t; 
+	System.out.println("AdditiveExpression");}
 {
-	multiplicativeExpression() (( <K_PLUS> | <K_MINUS> ) multiplicativeExpression())*
+	multiplicativeExpression() (( t=<K_PLUS> {jjtThis.data.put(i,"PLUS"); i++;}| t=<K_MINUS> {jjtThis.data.put(i,"MINUS"); i++;}) multiplicativeExpression())*
 }
 void multiplicativeExpression() #MultiplicativeExpression:
-{ /*Variable Declarations*/ System.out.println("MultiplicativeExpression");}
+{ 	int i =1;
+	Token t;
+	System.out.println("MultiplicativeExpression");}
 {
-	unaryExpression() ((<K_MULTIPLY> | <K_DIVIDE> | <K_MOD>) unaryExpression())*
+	unaryExpression() ((t=<K_MULTIPLY> {jjtThis.data.put(i,"MULTIPLY"); i++;} | t=<K_DIVIDE> {} | t=<K_MOD>{} ) unaryExpression())*
 }
 void unaryExpression() #UnaryExpression:
-{ /*Variable Declarations*/ System.out.println("MultiplicativeExpression");}
+{ Token t; System.out.println("UnaryExpression");}
 {
-	(<K_PLUS> | <K_MINUS> | <K_NOT>) unaryExpression()
+	(t=<K_PLUS> {jjtThis.data.put("UnaryExpression","PLUS");}| t=<K_MINUS> {jjtThis.data.put("UnaryExpression","MINUS");} | t=<K_NOT>{jjtThis.data.put("UnaryExpression","NOT");}) unaryExpression()
 	| postfixExpression()
 }
 void postfixExpression() #PostfixExpression:
-{ /*Variable Declarations*/ System.out.println("PostfixExpression");}
+{ Token t; System.out.println("PostfixExpression");}
 {
-	primaryExpression() ( <K_INCREMENT> | <K_DECREMENT> )?
+	primaryExpression() ( t=<K_INCREMENT> {jjtThis.data.put("Postfix","INCREMENT");} | t=<K_DECREMENT> {jjtThis.data.put("Postfix","DECREMENT");} )?
 }
 void primaryExpression() #PrimaryExpression:
 { /*Variable Declarations*/ System.out.println("PrimaryExpression");}
@@ -352,12 +362,14 @@ void primarySuffix() #PrimarySuffix:
 	| arguments()
 }
 void literal() #Literal:
-{ /*Variable Declarations*/ System.out.println("Literal");}
+{	Token t;
+	System.out.println("Literal");
+	}
 {
-	<IDENTIFIER>
-	| <ICONSTANT>
-	| <DCONSTANT>
-	| <SCONSTANT>
+	t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image);} 
+	| t=<ICONSTANT>{jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image);}
+	| t=<DCONSTANT>{jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image);}
+	| t=<SCONSTANT>{jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image);}
 }
 void arguments() #Arguments:
 { /*Variable Declarations*/ System.out.println("Arguments");}
