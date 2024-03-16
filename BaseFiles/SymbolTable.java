@@ -61,6 +61,8 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // Holds Name Identifier under "Value"
+    // can have 0 or more (functionDeclaration() | procedureDeclaration()) children
     public Object visit(ASTProgram node, Object data) {
         int ID = GetID();
 
@@ -92,6 +94,10 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // Holds Name Identifier under "Value"
+    // ASTType is first child
+    // ASTParameterList is second child
+    // ASTBlock is third child
     public Object visit(ASTFunctionDeclaration node, Object data) {
         int ID = GetID();
 
@@ -105,6 +111,9 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // Holds Name Identifier under "Value"
+    // ASTParameterList is first child
+    // ASTBlock is Second child
     public Object visit(ASTProcedureDeclaration node, Object data) {
         int ID = GetID();
         IndentCode();
@@ -128,6 +137,8 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No Info stored in node (matches parentheses)
+    // Can have 0 or more ASTParameter children
     public Object visit(ASTParameterList node, Object data) {
         int ID = GetID();
 
@@ -143,6 +154,9 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No info stored in node
+    // ASTType is first child
+    // ASTVariableDeclaratorID is second child
     public Object visit(ASTParameter node, Object data) {
         int ID = GetID();
         IndentCode();
@@ -166,6 +180,10 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No info stored in node
+    // VariableDeclaratorID is first child
+    // May have an ASTExpression as second child if assigning a value to the
+    // variable
     public Object visit(ASTVariableDeclarator node, Object data) {
         int ID = GetID();
 
@@ -181,6 +199,8 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // Holds Name Identifier under "Value"
+    // can have 0 or more ASTExpression surrounded by brackets so signify arrays
     public Object visit(ASTVariableDeclaratorId node, Object data) {
         int ID = GetID();
 
@@ -196,6 +216,9 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // the type of the variable is stored in the "Type" key
+    // can be "INTEGER", "DOUBLE", "STRING"
+    // no children
     public Object visit(ASTType node, Object data) {
         int ID = GetID();
 
@@ -211,6 +234,11 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No info stored in node
+    // has one child which can be:
+    // ASTBlock, ASTStatementExpression, ASTIfStatement,
+    // ASTWhileStatement, ASTDoStatement, ASTReturnStatement,
+    // ASTPrintStatement, ASTReadStatement
     public Object visit(ASTStatement node, Object data) {
         int ID = GetID();
 
@@ -226,13 +254,16 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No info stored in node (this matches the curly braces)
+    // can have 0 or more ASTBlockStatement children
     public Object visit(ASTBlock node, Object data) {
         int ID = GetID();
 
         // TODO: still needs the ability to parse if you give it a variable to
         // initialize
         IndentCode();
-        //fileText = fileText + typeStandard((String) node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
+        // fileText = fileText + typeStandard((String) node.data.get("type")) + " " +
+        // node.data.get("value") + ";\r\n";
 
         // Print information about node
         System.out.println("-----");
@@ -244,13 +275,18 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No info stored in node
+    // has one child which can be:
+    // ASTlocalVariableDeclaration, ASTStatement, ASTProcedureDeclaration,
+    // ASTFunctionDeclaration
     public Object visit(ASTBlockStatement node, Object data) {
         int ID = GetID();
 
         // TODO: still needs the ability to parse if you give it a variable to
         // initialize
         IndentCode();
-        //fileText = fileText + typeStandard((String) node.data.get("type")) + " " + node.data.get("value") + ";\r\n";
+        // fileText = fileText + typeStandard((String) node.data.get("type")) + " " +
+        // node.data.get("value") + ";\r\n";
 
         // Print information about node
         System.out.println("-----");
@@ -262,8 +298,29 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No info stored in node
+    // ASTType is first child
+    // ASTVariableDeclarator is second child
+    // can have 0 or more ASTVariableDeclarator children after the second child
+    public Object visit(ASTLocalVariableDeclaration node, Object data) {
+        int ID = GetID();
 
+        // Print information about node
+        System.out.println("-----");
+        System.out.println("** Node " + ID + ": LocalVariableDeclaration");
+        System.out.println("-----");
 
+        // Return to parent node (or move to sibling node if exists)
+        return null;
+    }
+
+    // May store "INCREMENT" or "DECREMENT" under the key "CREMENT" (if only one
+    // child)
+    // First child is ASTPrimaryExpression (which may be incremented or decremented,
+    // and has only one child)
+    // If not Incrementing or Decrementing:
+    // the second child is an ASTAssignmentOperator
+    // the third child is an ASTExpression
     public Object visit(ASTStatementExpression node, Object data) {
         int ID = GetID();
 
@@ -309,6 +366,11 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No info stored in node
+    // Has two required children and one optional child:
+    // ASTExpression to evaluate the boolean
+    // ASTStatement to execute if the boolean is true
+    // ASTStatement to execute if the boolean is false (optional)
     public Object visit(ASTIfStatement node, Object data) {
         int ID = GetID();
         // String VarID = (String) node.data.get("variable");
@@ -332,6 +394,10 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // No info stored in node
+    // Has two required children:
+    // ASTExpression to evaluate the boolean
+    // ASTStatement to execute if the boolean is true
     public Object visit(ASTWhileStatement node, Object data) {
         int ID = GetID();
         // String VarID = (String) node.data.get("variable");
@@ -355,6 +421,13 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    // for-loop (int i = 0; i < 10; i++) { ... }
+    // No info stored in node
+    // Has 3 optional children and 1 required child:
+    // ASTDoInit to initialize the loop variable (optional)
+    // ASTExpression to evaluate the boolean for the loop (optional)
+    // ASTStatementExpressionList to update the loop variable (optional)
+    // ASTStatement to execute in the loop (required)
     public Object visit(ASTDoStatement node, Object data) {
         int ID = GetID();
 
@@ -593,6 +666,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTAdditiveExpression node, Object data) {
         int ID = GetID();
 
@@ -605,6 +679,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTMultiplicativeExpression node, Object data) {
         int ID = GetID();
 
@@ -617,6 +692,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTUnaryExpression node, Object data) {
         int ID = GetID();
 
@@ -629,6 +705,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTPostfixExpression node, Object data) {
         int ID = GetID();
 
@@ -641,6 +718,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTPrimaryExpression node, Object data) {
         int ID = GetID();
 
@@ -653,6 +731,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTPrimaryPrefix node, Object data) {
         int ID = GetID();
 
@@ -665,6 +744,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTPrimarySuffix node, Object data) {
         int ID = GetID();
 
@@ -677,6 +757,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTLiteral node, Object data) {
         int ID = GetID();
 
@@ -689,6 +770,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTArguments node, Object data) {
         int ID = GetID();
 
@@ -701,6 +783,7 @@ public class SymbolTable implements CompilerVisitor {
 
         return null;
     }
+
     public Object visit(ASTArgumentList node, Object data) {
         int ID = GetID();
 

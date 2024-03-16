@@ -180,11 +180,11 @@ void localVariableDeclaration() #LocalVariableDeclaration:
 
 
 void statementExpression() #StatementExpression :
-{  	int i =1;
+{
 	Token t; 
 	System.out.println("StatementExpression");}
 {
-	primaryExpression() ( t=<K_INCREMENT>{jjtThis.data.put(i,"INCREMENT"); i++;} | t=<K_DECREMENT>{jjtThis.data.put(i,"DECREMENT"); i++;} | assignmentOperator() expression() )?
+	primaryExpression() ( t=<K_INCREMENT>{jjtThis.data.put("CREMENT","INCREMENT");} | t=<K_DECREMENT>{jjtThis.data.put("CREMENT","DECREMENT");} | assignmentOperator() expression() )?
 }
 
 void ifStatement() #IfStatement :
