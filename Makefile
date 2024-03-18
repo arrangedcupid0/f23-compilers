@@ -3,10 +3,12 @@
 
 all: treegen gen comp run
 
+try_te1: treegen gen comp run_te1
+
 treegen: BaseFiles/fresh.jjt
 	jjtree BaseFiles/fresh.jjt
 	copy BaseFiles\BaseNode.java Generated
-#copy BaseFiles\TreeWalk.java Generated
+	copy BaseFiles\SymbolTable.java Generated
 
 gen: Generated/fresh.jj
 	javacc Generated/fresh.jj

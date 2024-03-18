@@ -15,8 +15,8 @@ public class Compiler {
     //Compiler parser = new Compiler(new java.io.FileReader(args[0]));
     Compiler parser = new Compiler(System.in);
     ASTProgram expr=parser.program();
-    //TreeWalk v=new TreeWalk();
-    //expr.jjtAccept(v,null);
+    SymbolTable v=new SymbolTable();
+    expr.jjtAccept(v,null);
   }
 }
 
@@ -336,7 +336,7 @@ void multiplicativeExpression() #MultiplicativeExpression:
 void unaryExpression() #UnaryExpression:
 { Token t; System.out.println("UnaryExpression");}
 {
-	(t=<K_PLUS> {jjtThis.data.put("UnaryExpression","PLUS");}| t=<K_MINUS> {jjtThis.data.put("UnaryExpression","MINUS");} | t=<K_NOT>{jjtThis.data.put("UnaryExpression","NOT");}) unaryExpression()
+	(t=<K_PLUS> {jjtThis.data.put("Unary","PLUS");}| t=<K_MINUS> {jjtThis.data.put("Unary","MINUS");} | t=<K_NOT>{jjtThis.data.put("Unary","NOT");}) unaryExpression()
 	| postfixExpression()
 }
 void postfixExpression() #PostfixExpression:
