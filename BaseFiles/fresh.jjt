@@ -15,8 +15,7 @@ public class Compiler {
     //Compiler parser = new Compiler(new java.io.FileReader(args[0]));
     Compiler parser = new Compiler(System.in);
     ASTProgram expr=parser.program();
-    SymbolTable v=new SymbolTable();
-    expr.jjtAccept(v,null);
+    
   }
 }
 
