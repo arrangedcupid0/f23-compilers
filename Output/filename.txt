@@ -1,5 +1,9 @@
 int yourmain()
 {
+    int[] P = new string[10];
+goto: L0;
+
+L123;
 R[1] = Mem[SR+0];
 F23_Time += (1);
 R[1] = 441;
@@ -7,4 +11,15 @@ F23_Time += (1);
 Mem[SR+0] = R[1];
 F23_Time += (20+1);
 print_int( Mem[SR+0] );
+goto P[0];
+
+L0:
+// some code starting main()
+goto L123;
+L124:
+
+goto L123;
+L125:
+// some finish code
+return final result
 }

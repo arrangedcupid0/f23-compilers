@@ -16,7 +16,41 @@ public class SymbolTable implements CompilerVisitor {
     public ClassFileWriter fileWriter = new ClassFileWriter("Output/yourmain.h");
 
     // ################## Symbol Table Methods ##################
+    class scopedSymbolTable {
+        HashMap<String, SymbolTableEntry> symbolTable = new HashMap<String, SymbolTableEntry>();
+        scopedSymbolTable parent;
+        LinkedList<scopedSymbolTable> children;
+
+        public scopedSymbolTable(scopedSymbolTable parent) {
+            this.parent = parent;
+            this.children = new LinkedList<scopedSymbolTable>();
+        }
+
+        public void addChild(scopedSymbolTable child) {
+            this.children.add(child);
+        }
+
+        public void addEntry(String id, SymbolTableEntry entry) {
+            this.symbolTable.put(id, entry);
+        }
+
+        public SymbolTableEntry getEntry(String id) {
+            SymbolTableEntry entry = this.symbolTable.get(id);
+            if (entry != null) {
+                return entry;
+            } else if (this.parent != null) {
+                return this.parent.getEntry(id);
+            } else {
+                return null;
+            }
+        }
+
+    }
+
     class SymbolTableEntry {
+        // implement scope
+        // this needs to be modified to have parents and children
+        // i.e a tree of symbol tables
         String ID;
         String Type;
         Integer Size;
@@ -25,6 +59,7 @@ public class SymbolTable implements CompilerVisitor {
         LinkedList<Integer> LineOfUsage;
         Object Value;
         int MemoryLocation;
+        // add label for functions
 
         public SymbolTableEntry(
                 String id, String type, Integer size, Integer dimension,
@@ -53,6 +88,14 @@ public class SymbolTable implements CompilerVisitor {
         }
         System.out.printf("--------------------------------%n%n");
     }
+
+    /*
+     * To-Do Implement a helper class for assigning Lables 
+       * or attach it to one of the curent helper functions
+       * 
+       * the symbol table should hold the labe for functions as they are declared
+     * 
+     */
 
     class VisitReturn {
         int memoryLocation;
@@ -194,6 +237,7 @@ public class SymbolTable implements CompilerVisitor {
         }
     }
 
+    // need to implement strings in its functions
     public class ClassFileWriter {
         private String fileName;
         private StringBuilder fileText;
@@ -291,6 +335,8 @@ public class SymbolTable implements CompilerVisitor {
      * --------------------------------------------------------
      * - 1+          Optional             ASTFunctionDeclaration || ASTProcedureDeclaration
      */
+
+    // ToDo: add a jump to the Label for main()
     public Object visit(ASTProgram node, Object data) {
         int ID = GetID();
 
@@ -327,6 +373,9 @@ public class SymbolTable implements CompilerVisitor {
      * - 2          Required             ASTParameterList
      * - 3          Required             ASTBlock
      */
+    //ToDo: add a label for the function and record it in symbol table
+    //      store/access parameter list in global Variable P?
+    //      Should also access the return label to return to where the function was called
     public Object visit(ASTFunctionDeclaration node, Object data) {
         // get unique ID
         int ID = GetID();
@@ -352,6 +401,9 @@ public class SymbolTable implements CompilerVisitor {
      * - 1          Required             ASTParameterList
      * - 2          Required             ASTBlock
      */
+    // ToDo: add a label for the procedure and record it in symbol table
+    //      store/access parameter list in global Variable P?
+    //      Should also access the return label to return to where the function was called
     public Object visit(ASTProcedureDeclaration node, Object data) {
         // get unique ID
         int ID = GetID();
@@ -374,6 +426,7 @@ public class SymbolTable implements CompilerVisitor {
      * --------------------------------------------------------
      * - 1+ (Incrementing)  Optional            ASTParameter
      */
+    // ToDo: initalize the parameter list here? then let children add to it?
     public Object visit(ASTParameterList node, Object data) {
         // get unique ID
         int ID = GetID();
@@ -1130,6 +1183,7 @@ public class SymbolTable implements CompilerVisitor {
             }
 
             fileWriter.addCode(registerString1 + assign + registerString2 + ";\r\n");
+            fileWriter.storeRegister(register1, returnData1);
             if (returnData1.type == "DOUBLE") {
                 memoryHelper.returnFloatRegister(register1);
             } else if (returnData1.type == "INTEGER") {
@@ -1140,7 +1194,6 @@ public class SymbolTable implements CompilerVisitor {
             } else if (returnData2.type == "INTEGER") {
                 memoryHelper.returnIntRegister(register2);
             }
-
             memoryHelper.returnVariable(returnData2.memoryLocation, returnData2.type);
             return returnData1;
         }
@@ -2089,6 +2142,7 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    //A[I][J][K]
     public VisitReturn visitPrimaryExpression(ASTPrimaryExpression node) {
         VisitReturn visitReturn = new VisitReturn();
         // if one child then only a prefix
