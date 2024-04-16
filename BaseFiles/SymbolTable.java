@@ -11,6 +11,7 @@ public class SymbolTable implements CompilerVisitor {
     // ################## Variables ##################
     private int IDcounter = 0;
     private boolean returnStmt = false;
+    static int labelCounter = 1; // start from 1 because L000 is reserved for main
     public HashMap<String, SymbolTableEntry> symbolTable = new HashMap<String, SymbolTableEntry>();
     public MemoryHelper memoryHelper = new MemoryHelper();
     public ClassFileWriter fileWriter = new ClassFileWriter("Output/yourmain.h");
@@ -32,6 +33,17 @@ public class SymbolTable implements CompilerVisitor {
 
         public void addEntry(String id, SymbolTableEntry entry) {
             this.symbolTable.put(id, entry);
+        }
+
+        // existing methods...
+
+        void addEntry(String ID, String Type, int Size, int Dimension, int LineOfDecl, LinkedList<Integer> lineOfUsage,
+                Object Value, int memoryLocation) {
+            String label = String.format("L%03d", labelCounter++); // generate label
+            SymbolTableEntry entry = new SymbolTableEntry(ID, Type, Size, Dimension, LineOfDecl, lineOfUsage, Value,
+                    memoryLocation,
+                    label);
+            symbolTable.put(ID, entry);
         }
 
         public SymbolTableEntry getEntry(String id) {
@@ -60,6 +72,7 @@ public class SymbolTable implements CompilerVisitor {
         Object Value;
         int MemoryLocation;
         // add label for functions
+        String Label;
 
         public SymbolTableEntry(
                 String id, String type, Integer size, Integer dimension,
@@ -72,6 +85,12 @@ public class SymbolTable implements CompilerVisitor {
             this.Value = value;
             this.MemoryLocation = memoryLocation;
         }
+
+        public SymbolTableEntry(String ID, String Type, int Size, int Dimension, int LineOfDecl,
+                LinkedList<Integer> lineOfUsage, Object Value, int memoryLocation, String Label) {
+            this(ID, Type, Size, Dimension, LineOfDecl, lineOfUsage, Value, memoryLocation); // call existing constructor
+            this.Label = Label; // assign label
+        }
     }
 
     void printTable() {
@@ -79,12 +98,12 @@ public class SymbolTable implements CompilerVisitor {
         System.out.printf("      Symbol Table Values       %n");
         System.out.printf("                                %n");
         System.out.printf("--------------------------------%n");
-        System.out.printf("| %-10s | %-10s | %-10s | %-10s | %-10s | %-10s |%n",
-                "ID", "Type", "Size", "Dimension", "LineOfDecl", "value");
+        System.out.printf("| %-10s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s |%n",
+                "ID", "Type", "Size", "Dimension", "LineOfDecl", "value", "Label");
         System.out.printf("--------------------------------%n");
         for (SymbolTableEntry i : symbolTable.values()) {
-            System.out.printf("| %-10s | %-10s | %-10s | %-10s | %-10s | %-10s |%n",
-                    i.ID, i.Type, i.Size, i.Dimension, i.LineOfDecl, i.Value);
+            System.out.printf("| %-10s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s |%n",
+                    i.ID, i.Type, i.Size, i.Dimension, i.LineOfDecl, i.Value, i.Label);
         }
         System.out.printf("--------------------------------%n%n");
     }
@@ -247,11 +266,18 @@ public class SymbolTable implements CompilerVisitor {
             this.fileText = new StringBuilder();
         }
 
-        public void addCode(String code) {
+        public void addComment(String comment, String functionName) {
+            fileText.append("\t\t\t// Comment From: " + functionName + "\r\n");
+            fileText.append("\t\t\t// " + comment + "\r\n");
+        }
+
+        public void addCode(String code, String functionName) {
+            fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
             fileText.append(code);
         }
 
-        public void loadRegister(int register, int memoryLocation, String type) {
+        public void loadRegister(int register, int memoryLocation, String type, String functionName) {
+            fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
             if (type.equals("INTEGER")) {
                 fileText.append("R[" + register + "] = Mem[SR+" + memoryLocation + "];\r\n");
                 fileText.append("F23_Time += (20 + 1);\r\n");
@@ -264,12 +290,13 @@ public class SymbolTable implements CompilerVisitor {
             }
         }
 
-        public void loadRegister(int register, String type, String value) {
+        public void loadRegister(int register, String type, String value, String functionName) {
+            fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
             if (type.equals("INTEGER")) {
-                fileText.append("R[" + register + "] = " + value + "];\r\n");
+                fileText.append("R[" + register + "] = " + value + ";\r\n");
                 fileText.append("F23_Time += (1);\r\n");
             } else if (type.equals("DOUBLE")) {
-                fileText.append("F[" + register + "] = " + value + "];\r\n");
+                fileText.append("F[" + register + "] = " + value + ";\r\n");
                 fileText.append("F23_Time += (2);\r\n");
             } else {
                 throw new IllegalArgumentException(
@@ -277,7 +304,8 @@ public class SymbolTable implements CompilerVisitor {
             }
         }
 
-        public void storeRegister(int register, VisitReturn vr) {
+        public void storeRegister(int register, VisitReturn vr, String functionName) {
+            fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
             if (vr.type.equals("INTEGER")) {
                 fileText.append("Mem[SR+" + vr.memoryLocation + "] = R[" + register + "];\r\n");
                 fileText.append("F23_Time += (20 + 1);\r\n");
@@ -289,12 +317,18 @@ public class SymbolTable implements CompilerVisitor {
             }
         }
 
-        public void writeToFile() throws IOException {
+        public void LoadStrToSMem(int memoryLocation, String value, String functionName) {
+            fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
+            fileText.append("strcpy(SMem[" + memoryLocation + "], " + value + ");\r\n");
+            fileText.append("F23_Time += (60 * " + value.length() + ");\r\n");
+        }
+
+        public void writeToFile() {
             try {
                 FileWriter writer = new FileWriter(fileName);
                 writer.write(fileText.toString());
                 writer.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.out.print(e.getMessage());
             } finally {
             }
@@ -345,16 +379,16 @@ public class SymbolTable implements CompilerVisitor {
         // Print information about node
         printNode(ID, "ASTProgram");
 
-        fileWriter.addCode("int yourmain()\r\n" + "{\r\n");
+        fileWriter.addCode("int yourmain()\r\n" + "{\r\n", "ASTProgram");
 
         // Iterate through children nodes
         node.childrenAccept(this, data);
 
-        fileWriter.addCode("return 0;\r\n");
-
+        fileWriter.addCode("return 0;\r\n}", "ASTProgram");
         printfooter();
         printTable();
         // finish walk
+        fileWriter.writeToFile();
         return null;
     }
 
@@ -620,18 +654,21 @@ public class SymbolTable implements CompilerVisitor {
      * - Child #    Required/Optional    Type
      * --------------------------------------------------------
      * - 1         Required              ASTType
-     * - 2         Required              ASTVariableDeclarator
+     * - 2         Required              
      * - 3         Optional              ASTVariableDeclarator
      */
     public Object visit(ASTLocalVariableDeclaration node, Object data) {
-        String Type;
-
         int ID = GetID();
         // Print information about node
         printNode(ID, "ASTLocalVariableDeclaration");
+        visitLocalVariableDeclaration(node);
+        node.childrenAccept(this, data);
+        // Return to parent node (or move to sibling node if exists)
+        return null;
+    }
 
-        // get data from children
-        // get the type of the variable
+    public VisitReturn visitLocalVariableDeclaration(ASTLocalVariableDeclaration node) {
+        String Type;
         ASTType cnode = (ASTType) node.jjtGetChild(0);
         Type = (String) cnode.data.get("Type");
 
@@ -662,9 +699,9 @@ public class SymbolTable implements CompilerVisitor {
 
                 break;
         }
-
-        // Return to parent node (or move to sibling node if exists)
-        return null;
+        fileWriter.addComment("Variable Declaration: " + VarID + " at mem location " + symbolTable
+                .get(VarID).MemoryLocation, "ASTLocalVariableDeclaration");
+        return new VisitReturn(symbolTable.get(VarID).MemoryLocation, Type);
     }
 
     /**
@@ -693,6 +730,7 @@ public class SymbolTable implements CompilerVisitor {
         // Print information about node
         printNode(ID, "ASTStatementExpression");
         // Iterate through children nodes
+        visitStatementExpression(node);
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
         return null;
@@ -719,13 +757,13 @@ public class SymbolTable implements CompilerVisitor {
                 throw new RuntimeException(
                         "Error: Type " + returnData.type + " is not supported for assignment expression");
             }
-            fileWriter.loadRegister(register1, returnData.memoryLocation, returnData.type);
+            fileWriter.loadRegister(register1, returnData.memoryLocation, returnData.type, "ASTStatementExpression");
             if (node.data.get("CREMENT").toString() == "INCREMENT") {
-                fileWriter.addCode(registerString1 + "++;");
+                fileWriter.addCode(registerString1 + "++;", "ASTStatementExpression");
             } else {
-                fileWriter.addCode(registerString1 + "--;");
+                fileWriter.addCode(registerString1 + "--;", "ASTStatementExpression");
             }
-            fileWriter.storeRegister(register1, returnData);
+            fileWriter.storeRegister(register1, returnData, "ASTStatementExpression");
             memoryHelper.returnIntRegister(register1);
             return returnData;
 
@@ -755,8 +793,10 @@ public class SymbolTable implements CompilerVisitor {
                 throw new RuntimeException(
                         "Error: Type " + returnData1.type + " is not supported for assignment expression");
             }
-
-            fileWriter.addCode(registerString1 + assign + registerString2 + ";\r\n");
+            fileWriter.loadRegister(register1, returnData.memoryLocation, returnData.type, "ASTStatementExpression");
+            fileWriter.loadRegister(register2, returnData1.memoryLocation, returnData1.type, "ASTStatementExpression");
+            fileWriter.addCode(registerString1 + assign + registerString2 + ";\r\n", "ASTStatementExpression");
+            fileWriter.storeRegister(register1, returnData, "ASTStatementExpression");
             if (returnData.type == "DOUBLE") {
                 memoryHelper.returnFloatRegister(register1);
             } else if (returnData.type == "INTEGER") {
@@ -967,7 +1007,7 @@ public class SymbolTable implements CompilerVisitor {
         // get the value to print
         ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
         VisitReturn returnData = visitExpression(cnode);
-        fileWriter.addCode("print_int( Mem[SR+" + returnData.memoryLocation + "] );\r\n");
+        fileWriter.addCode("print_int( Mem[SR+" + returnData.memoryLocation + "] );\r\n", "ASTPrintIntStatement");
         // Iterate through children nodes
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
@@ -994,7 +1034,8 @@ public class SymbolTable implements CompilerVisitor {
         // get the value to print
         ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
         VisitReturn returnData = visitExpression(cnode);
-        fileWriter.addCode("print_double( FMem[FR+" + returnData.memoryLocation + "] );\r\n");
+        fileWriter.addCode("print_double( FMem[FR+" + returnData.memoryLocation + "] );\r\n",
+                "ASTPrintDoubleStatement");
         // Iterate through children nodes
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
@@ -1018,6 +1059,11 @@ public class SymbolTable implements CompilerVisitor {
         int ID = GetID();
         // Print information about node
         printNode(ID, "ASTPrintStringStatement");
+
+        ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
+        VisitReturn returnData = visitExpression(cnode);
+        fileWriter.addCode("print_string( SMem[" + returnData.memoryLocation + "] );\r\n", "ASTPrintStringStatement");
+
         // Iterate through children nodes
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
@@ -1182,8 +1228,8 @@ public class SymbolTable implements CompilerVisitor {
                         "Error: Type " + returnData2.type + " is not supported for assignment expression");
             }
 
-            fileWriter.addCode(registerString1 + assign + registerString2 + ";\r\n");
-            fileWriter.storeRegister(register1, returnData1);
+            fileWriter.addCode(registerString1 + assign + registerString2 + ";", "ASTExpression");
+            fileWriter.storeRegister(register1, returnData1, "ASTExpression");
             if (returnData1.type == "DOUBLE") {
                 memoryHelper.returnFloatRegister(register1);
             } else if (returnData1.type == "INTEGER") {
@@ -1332,10 +1378,13 @@ public class SymbolTable implements CompilerVisitor {
                 }
 
                 register3 = memoryHelper.requestIntRegister();
-                fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type);
-                fileWriter.addCode("R[" + register3 + "] = " + registerString1 + " | " + registerString2 + ";\r\n");
-                fileWriter.storeRegister(register3, returnData);
+                fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                        "ASTConditionalOrExpression");
+                fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
+                        "ASTConditionalOrExpression");
+                fileWriter.addCode("R[" + register3 + "] = " + registerString1 + " | " + registerString2 + ";\r\n",
+                        "ASTConditionalOrExpression");
+                fileWriter.storeRegister(register3, returnData, "ASTConditionalOrExpression");
                 if (returnData1.type == "DOUBLE") {
                     memoryHelper.returnFloatRegister(register2);
                 } else if (returnData1.type == "INTEGER") {
@@ -1442,10 +1491,13 @@ public class SymbolTable implements CompilerVisitor {
                 }
 
                 register3 = memoryHelper.requestIntRegister();
-                fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type);
-                fileWriter.addCode("R[" + register3 + "] = " + registerString1 + " & " + registerString2 + ";\r\n");
-                fileWriter.storeRegister(register3, returnData);
+                fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                        "ASTConditionalAndExpression");
+                fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
+                        "ASTConditionalAndExpression");
+                fileWriter.addCode("R[" + register3 + "] = " + registerString1 + " & " + registerString2 + ";\r\n",
+                        "ASTConditionalAndExpression");
+                fileWriter.storeRegister(register3, returnData, "ASTConditionalAndExpression");
                 if (returnData1.type == "DOUBLE") {
                     memoryHelper.returnFloatRegister(register1);
                 } else if (returnData1.type == "INTEGER") {
@@ -1553,18 +1605,22 @@ public class SymbolTable implements CompilerVisitor {
                 }
 
                 register3 = memoryHelper.requestIntRegister();
-                fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type);
+                fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                        "ASTEqualityExpression");
+                fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
+                        "ASTEqualityExpression");
                 if (equality.equals("DEQ")) {
                     fileWriter
-                            .addCode("R[" + register3 + "] = " + registerString1 + " == " + registerString2 + ";\r\n");
+                            .addCode("R[" + register3 + "] = " + registerString1 + " == " + registerString2 + ";\r\n",
+                                    "ASTEqualityExpression");
                 } else if (equality.equals("NE")) {
                     fileWriter
-                            .addCode("R[" + register3 + "] = " + registerString1 + " != " + registerString2 + ";\r\n");
+                            .addCode("R[" + register3 + "] = " + registerString1 + " != " + registerString2 + ";\r\n",
+                                    "ASTEqualityExpression");
                 } else {
                     throw new RuntimeException("Error: Equality operator " + equality + " is not supported");
                 }
-                fileWriter.storeRegister(register3, returnData);
+                fileWriter.storeRegister(register3, returnData, "ASTEqualityExpression");
                 if (returnData1.type == "DOUBLE") {
                     memoryHelper.returnFloatRegister(register1);
                 } else if (returnData1.type == "INTEGER") {
@@ -1663,20 +1719,26 @@ public class SymbolTable implements CompilerVisitor {
                 }
 
                 register3 = memoryHelper.requestIntRegister();
-                fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type);
+                fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                        "ASTRelationalExpression");
+                fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
+                        "ASTRelationalExpression");
                 if (relational.equals("LT")) {
-                    fileWriter.addCode("R[" + register3 + "] = " + registerString1 + " < " + registerString2 + ";\r\n");
+                    fileWriter.addCode("R[" + register3 + "] = " + registerString1 + " < " + registerString2 + ";\r\n",
+                            "ASTRelationalExpression");
                 } else if (relational.equals("GT")) {
-                    fileWriter.addCode("R[" + register3 + "] = " + registerString1 + " > " + registerString2 + ";\r\n");
+                    fileWriter.addCode("R[" + register3 + "] = " + registerString1 + " > " + registerString2 + ";\r\n",
+                            "ASTRelationalExpression");
                 } else if (relational.equals("LEQ")) {
                     fileWriter
-                            .addCode("R[" + register3 + "] = " + registerString1 + " <= " + registerString2 + ";\r\n");
+                            .addCode("R[" + register3 + "] = " + registerString1 + " <= " + registerString2 + ";\r\n",
+                                    "ASTRelationalExpression");
                 } else if (relational.equals("GEQ")) {
                     fileWriter
-                            .addCode("R[" + register3 + "] = " + registerString1 + " >= " + registerString2 + ";\r\n");
+                            .addCode("R[" + register3 + "] = " + registerString1 + " >= " + registerString2 + ";\r\n",
+                                    "ASTRelationalExpression");
                 }
-                fileWriter.storeRegister(register3, returnData);
+                fileWriter.storeRegister(register3, returnData, "ASTRelationalExpression");
                 if (returnData1.type == "DOUBLE") {
                     memoryHelper.returnFloatRegister(register1);
                 } else if (returnData1.type == "INTEGER") {
@@ -1760,14 +1822,18 @@ public class SymbolTable implements CompilerVisitor {
                     }
                     register1 = memoryHelper.requestIntRegister();
                     register2 = memoryHelper.requestIntRegister();
-                    fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                    fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type);
+                    fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                            "ASTAdditiveExpression");
+                    fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
+                            "ASTAdditiveExpression");
                     if (additive.equals("PLUS")) {
-                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] + R[" + register2 + "];\r\n");
+                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] + R[" + register2 + "];\r\n",
+                                "ASTAdditiveExpression");
                     } else if (additive.equals("MINUS")) {
-                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] - R[" + register2 + "];\r\n");
+                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] - R[" + register2 + "];\r\n",
+                                "ASTAdditiveExpression");
                     }
-                    fileWriter.storeRegister(register1, returnData);
+                    fileWriter.storeRegister(register1, returnData, "ASTAdditiveExpression");
                     memoryHelper.returnIntRegister(register1);
                     memoryHelper.returnIntRegister(register2);
                 } else if ((returnData1.type == "DOUBLE" || returnData1.type == "INTEGER") &&
@@ -1779,12 +1845,14 @@ public class SymbolTable implements CompilerVisitor {
                         // convert to double
                         register1 = memoryHelper.requestIntRegister();
                         register2 = memoryHelper.requestFloatRegister();
-                        fileWriter.loadRegister(register1, returnData.memoryLocation, returnData.type);
-                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n");
+                        fileWriter.loadRegister(register1, returnData.memoryLocation, returnData.type,
+                                "ASTAdditiveExpression");
+                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n",
+                                "ASTAdditiveExpression");
                         memoryHelper.returnVariable(returnData.memoryLocation, returnData.type);
                         returnData.type = "DOUBLE";
                         returnData.memoryLocation = memoryHelper.requestVariable("DOUBLE");
-                        fileWriter.storeRegister(register2, returnData);
+                        fileWriter.storeRegister(register2, returnData, "ASTAdditiveExpression");
                         memoryHelper.returnIntRegister(register1);
                         memoryHelper.returnFloatRegister(register2);
                     }
@@ -1792,12 +1860,14 @@ public class SymbolTable implements CompilerVisitor {
                         // convert to double
                         register1 = memoryHelper.requestIntRegister();
                         register2 = memoryHelper.requestFloatRegister();
-                        fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n");
+                        fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                                "ASTAdditiveExpression");
+                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n",
+                                "ASTAdditiveExpression");
                         memoryHelper.returnVariable(returnData1.memoryLocation, returnData1.type);
                         returnData1.type = "DOUBLE";
                         returnData1.memoryLocation = memoryHelper.requestVariable("DOUBLE");
-                        fileWriter.storeRegister(register2, returnData1);
+                        fileWriter.storeRegister(register2, returnData1, "ASTAdditiveExpression");
                         memoryHelper.returnIntRegister(register1);
                         memoryHelper.returnFloatRegister(register2);
                     }
@@ -1805,25 +1875,31 @@ public class SymbolTable implements CompilerVisitor {
                         // convert to double
                         register1 = memoryHelper.requestIntRegister();
                         register2 = memoryHelper.requestFloatRegister();
-                        fileWriter.loadRegister(register1, returnData2.memoryLocation, returnData2.type);
-                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n");
+                        fileWriter.loadRegister(register1, returnData2.memoryLocation, returnData2.type,
+                                "ASTAdditiveExpression");
+                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n",
+                                "ASTAdditiveExpression");
                         memoryHelper.returnVariable(returnData2.memoryLocation, returnData2.type);
                         returnData2.type = "DOUBLE";
                         returnData2.memoryLocation = memoryHelper.requestVariable("DOUBLE");
-                        fileWriter.storeRegister(register2, returnData2);
+                        fileWriter.storeRegister(register2, returnData2, "ASTAdditiveExpression");
                         memoryHelper.returnIntRegister(register1);
                         memoryHelper.returnFloatRegister(register2);
                     }
                     register1 = memoryHelper.requestFloatRegister();
                     register2 = memoryHelper.requestFloatRegister();
-                    fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                    fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type);
+                    fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                            "ASTAdditiveExpression");
+                    fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
+                            "ASTAdditiveExpression");
                     if (additive.equals("PLUS")) {
-                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] + F[" + register2 + "];\r\n");
+                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] + F[" + register2 + "];\r\n",
+                                "ASTAdditiveExpression");
                     } else if (additive.equals("MINUS")) {
-                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] - F[" + register2 + "];\r\n");
+                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] - F[" + register2 + "];\r\n",
+                                "ASTAdditiveExpression");
                     }
-                    fileWriter.storeRegister(register1, returnData);
+                    fileWriter.storeRegister(register1, returnData, "ASTAdditiveExpression");
                     memoryHelper.returnFloatRegister(register1);
                     memoryHelper.returnFloatRegister(register2);
                 } else {
@@ -1906,16 +1982,21 @@ public class SymbolTable implements CompilerVisitor {
                     }
                     register1 = memoryHelper.requestIntRegister();
                     register2 = memoryHelper.requestIntRegister();
-                    fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                    fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type);
+                    fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                            "ASTMultiplicativeExpression");
+                    fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
+                            "ASTMultiplicativeExpression");
                     if (multiplicative.equals("MULTIPLY")) {
-                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] * R[" + register2 + "];\r\n");
+                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] * R[" + register2 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                     } else if (multiplicative.equals("DIVIDE")) {
-                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] / R[" + register2 + "];\r\n");
+                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] / R[" + register2 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                     } else if (multiplicative.equals("MOD")) {
-                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] % R[" + register2 + "];\r\n");
+                        fileWriter.addCode("R[" + register1 + "] = R[" + register1 + "] % R[" + register2 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                     }
-                    fileWriter.storeRegister(register1, returnData);
+                    fileWriter.storeRegister(register1, returnData, "ASTMultiplicativeExpression");
                     memoryHelper.returnIntRegister(register1);
                     memoryHelper.returnIntRegister(register2);
                 } else if ((returnData1.type == "DOUBLE" || returnData1.type == "INTEGER") &&
@@ -1927,12 +2008,14 @@ public class SymbolTable implements CompilerVisitor {
                         // convert to double
                         register1 = memoryHelper.requestIntRegister();
                         register2 = memoryHelper.requestFloatRegister();
-                        fileWriter.loadRegister(register1, returnData.memoryLocation, returnData.type);
-                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n");
+                        fileWriter.loadRegister(register1, returnData.memoryLocation, returnData.type,
+                                "ASTMultiplicativeExpression");
+                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                         memoryHelper.returnVariable(returnData.memoryLocation, returnData.type);
                         returnData.type = "DOUBLE";
                         returnData.memoryLocation = memoryHelper.requestVariable("DOUBLE");
-                        fileWriter.storeRegister(register2, returnData);
+                        fileWriter.storeRegister(register2, returnData, "ASTMultiplicativeExpression");
                         memoryHelper.returnIntRegister(register1);
                         memoryHelper.returnFloatRegister(register2);
                     }
@@ -1940,12 +2023,14 @@ public class SymbolTable implements CompilerVisitor {
                         // convert to double
                         register1 = memoryHelper.requestIntRegister();
                         register2 = memoryHelper.requestFloatRegister();
-                        fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n");
+                        fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                                "ASTMultiplicativeExpression");
+                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                         memoryHelper.returnVariable(returnData1.memoryLocation, returnData1.type);
                         returnData1.type = "DOUBLE";
                         returnData1.memoryLocation = memoryHelper.requestVariable("DOUBLE");
-                        fileWriter.storeRegister(register2, returnData1);
+                        fileWriter.storeRegister(register2, returnData1, "ASTMultiplicativeExpression");
                         memoryHelper.returnIntRegister(register1);
                         memoryHelper.returnFloatRegister(register2);
                     }
@@ -1953,27 +2038,34 @@ public class SymbolTable implements CompilerVisitor {
                         // convert to double
                         register1 = memoryHelper.requestIntRegister();
                         register2 = memoryHelper.requestFloatRegister();
-                        fileWriter.loadRegister(register1, returnData2.memoryLocation, returnData2.type);
-                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n");
+                        fileWriter.loadRegister(register1, returnData2.memoryLocation, returnData2.type,
+                                "ASTMultiplicativeExpression");
+                        fileWriter.addCode("F[" + register2 + "] = (double) R[" + register1 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                         memoryHelper.returnVariable(returnData2.memoryLocation, returnData2.type);
                         returnData2.type = "DOUBLE";
                         returnData2.memoryLocation = memoryHelper.requestVariable("DOUBLE");
-                        fileWriter.storeRegister(register2, returnData2);
+                        fileWriter.storeRegister(register2, returnData2, "ASTMultiplicativeExpression");
                         memoryHelper.returnIntRegister(register1);
                         memoryHelper.returnFloatRegister(register2);
                     }
                     register1 = memoryHelper.requestFloatRegister();
                     register2 = memoryHelper.requestFloatRegister();
-                    fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type);
-                    fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type);
+                    fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
+                            "ASTMultiplicativeExpression");
+                    fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
+                            "ASTMultiplicativeExpression");
                     if (multiplicative.equals("MULTIPLY")) {
-                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] * F[" + register2 + "];\r\n");
+                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] * F[" + register2 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                     } else if (multiplicative.equals("DIVIDE")) {
-                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] / F[" + register2 + "];\r\n");
+                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] / F[" + register2 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                     } else if (multiplicative.equals("MOD")) {
-                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] % F[" + register2 + "];\r\n");
+                        fileWriter.addCode("F[" + register1 + "] = F[" + register1 + "] % F[" + register2 + "];\r\n",
+                                "ASTMultiplicativeExpression");
                     }
-                    fileWriter.storeRegister(register1, returnData);
+                    fileWriter.storeRegister(register1, returnData, "ASTMultiplicativeExpression");
                     memoryHelper.returnFloatRegister(register1);
                     memoryHelper.returnFloatRegister(register2);
                 } else {
@@ -2101,17 +2193,17 @@ public class SymbolTable implements CompilerVisitor {
             int register = memoryHelper.requestIntRegister();
             if (node.data.get("Postfix") != null) {
                 String postfix = node.data.get("Postfix").toString();
-                fileWriter.loadRegister(register, visitReturn.memoryLocation, visitReturn.type);
+                fileWriter.loadRegister(register, visitReturn.memoryLocation, visitReturn.type, "ASTPostfixExpression");
                 if (postfix.equals("INCREMENT")) {
-                    fileWriter.addCode("R[" + register + "] = R[" + register + "] + 1;\r\n");
+                    fileWriter.addCode("R[" + register + "] = R[" + register + "] + 1;\r\n", "ASTPostfixExpression");
                 } else {
-                    fileWriter.addCode("R[" + register + "] = R[" + register + "] - 1;\r\n");
+                    fileWriter.addCode("R[" + register + "] = R[" + register + "] - 1;\r\n", "ASTPostfixExpression");
                 }
-                fileWriter.addCode("F23_Time += 1;\r\n");
-                fileWriter.storeRegister(register, visitReturn);
+                fileWriter.addCode("F23_Time += 1;\r\n", "ASTPostfixExpression");
+                fileWriter.storeRegister(register, visitReturn, "ASTPostfixExpression");
             }
             memoryHelper.returnIntRegister(register);
-        } else {
+        } else if (visitReturn.type != "INTEGER" && node.data.get("Postfix") != null) {
             throw new RuntimeException("Error: Illegal use of increment or decrement operator on non-integer type.");
         }
 
@@ -2251,7 +2343,7 @@ public class SymbolTable implements CompilerVisitor {
         switch (type) {
             case "IDENTIFIER":
                 visitReturn.type = symbolTable.get(value).Type;
-                visitReturn.memoryLocation = memoryHelper.requestVariable(type);
+                visitReturn.memoryLocation = symbolTable.get(value).MemoryLocation;
                 break;
             case "ICONSTANT":
                 visitReturn.type = "INTEGER";
@@ -2270,22 +2362,21 @@ public class SymbolTable implements CompilerVisitor {
                 // Handle unknown type
                 break;
         }
-        if (visitReturn.type == "INTEGER") {
+
+        if (type == "ICONSTANT") {
             register = memoryHelper.requestIntRegister();
-        } else if (visitReturn.type == "DOUBLE") {
-            register = memoryHelper.requestFloatRegister();
-        } else {
-            // do something with strings
-        }
-        fileWriter.loadRegister(register, visitReturn.type, value);
-        fileWriter.storeRegister(register, visitReturn);
-        if (visitReturn.type == "INTEGER") {
+            fileWriter.loadRegister(register, visitReturn.type, value, "ASTLiteral");
+            fileWriter.storeRegister(register, visitReturn, "ASTLiteral");
             memoryHelper.returnIntRegister(register);
-        } else if (visitReturn.type == "DOUBLE") {
+        } else if (type == "DCONSTANT") {
+            register = memoryHelper.requestFloatRegister();
+            fileWriter.loadRegister(register, visitReturn.type, value, "ASTLiteral");
+            fileWriter.storeRegister(register, visitReturn, "ASTLiteral");
             memoryHelper.returnFloatRegister(register);
-        } else {
-            // do something with strings
+        } else if (type == "SCONSTANT") {
+            fileWriter.LoadStrToSMem(visitReturn.memoryLocation, value, "ASTLiteral");
         }
+
         return visitReturn;
     }
 

@@ -5,6 +5,8 @@ all: treegen gen comp run
 
 try_te1: treegen gen comp run_te1
 
+try_te2: treegen gen comp run_te2
+
 treegen: BaseFiles/fresh.jjt
 	jjtree BaseFiles/fresh.jjt
 	copy BaseFiles\BaseNode.java Generated
