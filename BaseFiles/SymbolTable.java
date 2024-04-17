@@ -936,6 +936,17 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    public Object visitIfStatement(ASTIfStatement node, Object data) {
+        // get unique ID
+        int ID = GetID();
+        // Print information about node
+        printNode(ID, "ASTIfStatement");
+        // Iterate through children nodes
+        node.childrenAccept(this, data);
+        // Return to parent node (or move to sibling node if exists)
+        return null;
+    }
+
     /**
      * Description:
      * - While statement (while (x < 10) { ... })
