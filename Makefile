@@ -50,6 +50,9 @@ run_mg: Input/mg.f23
 	java -cp Compiled Compiler < Input/mg.f23
 #ren .\Output\filename.txt mg.h
 
+cp_output: Output/yourmain.h
+	copy Output\filename.txt Output\filename.h
+
 
 clean: 
 	del /q .\Generated\*
@@ -61,3 +64,4 @@ javacc:
 	javacc
 
 .phony: clean javacc
+

@@ -16,14 +16,14 @@ F23_Time += (1);
 Mem[SR+1] = R[0];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[1] = Mem[SR + 0];
+R[1] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[2] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[1] = R[1] + R[2];
 			// Generated from function: ASTPrimarySuffix
-R[1] = Mem[SR + R[1]];			// Generated from function: ASTPrimarySuffix
+R[1] = *R[1];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTLiteral
@@ -50,14 +50,14 @@ F23_Time += (1);
 Mem[SR+1] = R[6];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[7] = Mem[SR + 0];
+R[7] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[8] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[7] = R[7] + R[8];
 			// Generated from function: ASTPrimarySuffix
-R[7] = Mem[SR + R[7]];			// Generated from function: ASTPrimarySuffix
+R[7] = *R[7];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[7];
 F23_Time += (20 + 1);
 			// Generated from function: ASTLiteral
@@ -84,14 +84,14 @@ F23_Time += (1);
 Mem[SR+1] = R[12];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[13] = Mem[SR + 0];
+R[13] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[14] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[13] = R[13] + R[14];
 			// Generated from function: ASTPrimarySuffix
-R[13] = Mem[SR + R[13]];			// Generated from function: ASTPrimarySuffix
+R[13] = *R[13];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[13];
 F23_Time += (20 + 1);
 			// Generated from function: ASTLiteral
@@ -118,14 +118,14 @@ F23_Time += (1);
 Mem[SR+1] = R[18];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[19] = Mem[SR + 0];
+R[19] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[20] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[19] = R[19] + R[20];
 			// Generated from function: ASTPrimarySuffix
-R[19] = Mem[SR + R[19]];			// Generated from function: ASTPrimarySuffix
+R[19] = *R[19];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[19];
 F23_Time += (20 + 1);
 			// Generated from function: ASTLiteral
@@ -152,14 +152,14 @@ F23_Time += (1);
 Mem[SR+1] = R[24];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[25] = Mem[SR + 0];
+R[25] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[26] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[25] = R[25] + R[26];
 			// Generated from function: ASTPrimarySuffix
-R[25] = Mem[SR + R[25]];			// Generated from function: ASTPrimarySuffix
+R[25] = *R[25];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[25];
 F23_Time += (20 + 1);
 			// Generated from function: ASTLiteral
@@ -186,14 +186,14 @@ F23_Time += (1);
 Mem[SR+1] = R[30];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[31] = Mem[SR + 0];
+R[31] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[0] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[31] = R[31] + R[0];
 			// Generated from function: ASTPrimarySuffix
-R[31] = Mem[SR + R[31]];			// Generated from function: ASTPrimarySuffix
+R[31] = *R[31];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[31];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrintIntStatement
@@ -205,14 +205,14 @@ F23_Time += (1);
 Mem[SR+1] = R[1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[2] = Mem[SR + 0];
+R[2] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[3] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[2] = R[2] + R[3];
 			// Generated from function: ASTPrimarySuffix
-R[2] = Mem[SR + R[2]];			// Generated from function: ASTPrimarySuffix
+R[2] = *R[2];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[2];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrintIntStatement
@@ -224,14 +224,14 @@ F23_Time += (1);
 Mem[SR+1] = R[4];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[5] = Mem[SR + 0];
+R[5] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[6] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[5] = R[5] + R[6];
 			// Generated from function: ASTPrimarySuffix
-R[5] = Mem[SR + R[5]];			// Generated from function: ASTPrimarySuffix
+R[5] = *R[5];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[5];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrintIntStatement
@@ -243,14 +243,14 @@ F23_Time += (1);
 Mem[SR+1] = R[7];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[8] = Mem[SR + 0];
+R[8] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[9] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[8] = R[8] + R[9];
 			// Generated from function: ASTPrimarySuffix
-R[8] = Mem[SR + R[8]];			// Generated from function: ASTPrimarySuffix
+R[8] = *R[8];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[8];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrintIntStatement
@@ -262,14 +262,14 @@ F23_Time += (1);
 Mem[SR+1] = R[10];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
-R[11] = Mem[SR + 0];
+R[11] = &Mem[SR + 0];
 			// Generated from function: ASTPrimarySuffix
 R[12] = Mem[SR+1];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrimarySuffix
 R[11] = R[11] + R[12];
 			// Generated from function: ASTPrimarySuffix
-R[11] = Mem[SR + R[11]];			// Generated from function: ASTPrimarySuffix
+R[11] = *R[11];			// Generated from function: ASTPrimarySuffix
 Mem[SR+1] = R[11];
 F23_Time += (20 + 1);
 			// Generated from function: ASTPrintIntStatement
