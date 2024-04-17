@@ -384,6 +384,7 @@ public class SymbolTable implements CompilerVisitor {
         public void prependHeader() {
             String code = "int yourmain()\r\n" + "{\r\n"
                     + "int*    P[16];\r\n"
+                    + "SR = SR + 1;\r\n"
                     + "FR = " + (memoryHelper.MaxIntCounter + memoryHelper.MaxIntCounter % 2)
                     + ";\r\n"
                     + "FR = FR >> 1; \r\n"
@@ -493,7 +494,7 @@ public class SymbolTable implements CompilerVisitor {
         if (!functionName.equals("main")) {
             fileWriter.addCode("goto *P[0];\r\n", "ASTFunctionDeclaration");
         } else {
-            fileWriter.addCode("return 0;\r\n", "ASTFunctionDeclaration");
+            fileWriter.addCode("SR = SR - 1;\r\nreturn 0;\r\n", "ASTFunctionDeclaration");
         }
         // decrease scope
         symbolTable = symbolTable.parent;
@@ -1114,10 +1115,43 @@ public class SymbolTable implements CompilerVisitor {
     public Object visit(ASTDoStatement node, Object data) {
         // get unique ID
         int ID = GetID();
+        String startLabel = symbolTable.getNewLabel();
+        String dolabel = symbolTable.getNewLabel();
+        String endlabel = symbolTable.getNewLabel();
+        symbolTable = new scopedSymbolTable(symbolTable);
         // Print information about node
         printNode(ID, "ASTDoStatement");
-        // Iterate through children nodes
-        node.childrenAccept(this, data);
+
+        fileWriter.addComment("Start of Do-Statement \r\n", "ASTDoStatement");
+        // init statement
+        for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+            if (node.jjtGetChild(i) instanceof ASTDoInit) {
+                ASTDoInit cnode = (ASTDoInit) node.jjtGetChild(i);
+                cnode.jjtAccept(this, data);
+            } else if (node.jjtGetChild(i) instanceof ASTExpression) {
+                ASTExpression cnode = (ASTExpression) node.jjtGetChild(i);
+                // write start lable
+                fileWriter.addCode(startLabel + ":\r\n", "ASTDoStatement");
+                VisitReturn returnData = visitExpression(cnode);
+                // evauluate expression
+                int register = memoryHelper.requestIntRegister();
+                fileWriter.loadRegister(register, returnData.memoryLocation, "BOOLEAN", "ASTDoStatement");
+                fileWriter.addCode("if (R[" + register + "]) goto " + dolabel + ";", "ASTDoStatement");
+                memoryHelper.returnIntRegister(register);
+                fileWriter.addCode("goto " + endlabel + ";\r\n", "ASTDoStatement");
+                fileWriter.addCode(dolabel + ":\r\n", "ASTDoStatement");
+            } else if (node.jjtGetChild(i) instanceof ASTStatementExpressionList) {
+                ASTStatementExpressionList cnode = (ASTStatementExpressionList) node.jjtGetChild(i);
+                cnode.jjtAccept(this, data);
+            } else if (node.jjtGetChild(i) instanceof ASTStatement) {
+                ASTStatement cnode = (ASTStatement) node.jjtGetChild(i);
+                cnode.jjtAccept(this, data);
+                fileWriter.addCode("goto " + startLabel + ";\r\n", "ASTDoStatement");
+                fileWriter.addCode(endlabel + ":\r\n", "ASTDoStatement");
+            }
+        }
+
+        symbolTable = symbolTable.parent;
         // Return to parent node (or move to sibling node if exists)
         return null;
     }
