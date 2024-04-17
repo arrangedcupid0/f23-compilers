@@ -86,24 +86,24 @@ F[4]=F[5];
 FMem[FR+0] = F[4];
 F23_Time += (20 + 2);
 			// Generated from function: ASTLiteral
-strcpy(SMem[0], "i = ");
+strcpy(&SMem[0], "i = ");
 F23_Time += (60 * 6);
 			// Generated from function: ASTPrintStringStatement
-print_string( SMem[0] );
+print_string( &SMem[0] );
 			// Generated from function: ASTPrintIntStatement
 print_int( Mem[SR+0] );
 			// Generated from function: ASTLiteral
-strcpy(SMem[1], ", a = ");
+strcpy(&SMem[1], ", a = ");
 F23_Time += (60 * 8);
 			// Generated from function: ASTPrintStringStatement
-print_string( SMem[1] );
+print_string( &SMem[1] );
 			// Generated from function: ASTPrintDoubleStatement
 print_double( FMem[FR+0] );
 			// Generated from function: ASTLiteral
-strcpy(SMem[2], "\n");
+strcpy(&SMem[2], "\n");
 F23_Time += (60 * 4);
 			// Generated from function: ASTPrintStringStatement
-print_string( SMem[2] );
+print_string( &SMem[2] );
 			// Generated from function: ASTFunctionDeclaration
 return 0;
 			// Generated from function: ASTProgram

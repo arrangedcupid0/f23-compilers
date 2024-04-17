@@ -8,10 +8,10 @@ goto L000;
 			// Generated from function: ASTFunctionDeclaration
 L000:
 			// Generated from function: ASTLiteral
-strcpy(SMem[0], "Hello\n");
+strcpy(&SMem[0], "Hello\n");
 F23_Time += (60 * 9);
 			// Generated from function: ASTPrintStringStatement
-print_string( SMem[0] );
+print_string( &SMem[0] );
 			// Generated from function: ASTFunctionDeclaration
 return 0;
 			// Generated from function: ASTProgram

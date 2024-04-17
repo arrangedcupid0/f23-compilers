@@ -14,20 +14,20 @@ Mem[0] = P[1];			// Generated from function: ASTParameter
 			// Comment From: ASTLocalVariableDeclaration
 			// Variable Declaration: title at mem location 0
 			// Generated from function: ASTLiteral
-strcpy(SMem[1], "printing integer ");
+strcpy(&SMem[1], "printing integer ");
 F23_Time += (60 * 19);
 			// Generated from function: ASTStatementExpression
-strcpy(SMem[0], SMem[1]);
+strcpy(&SMem[0], SMem[1]);
 F23_Time += (60 * 7);
 			// Generated from function: ASTPrintStringStatement
-print_string( SMem[0] );
+print_string( &SMem[0] );
 			// Generated from function: ASTPrintIntStatement
 print_int( Mem[SR+0] );
 			// Generated from function: ASTLiteral
-strcpy(SMem[1], "\n");
+strcpy(&SMem[1], "\n");
 F23_Time += (60 * 4);
 			// Generated from function: ASTPrintStringStatement
-print_string( SMem[1] );
+print_string( &SMem[1] );
 			// Generated from function: ASTProcedureDeclaration
 goto *P[0];
 			// Generated from function: ASTFunctionDeclaration

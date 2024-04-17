@@ -363,7 +363,7 @@ public class SymbolTable implements CompilerVisitor {
 
         public void LoadStrToSMem(int memoryLocation, String value, String functionName) {
             fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
-            fileText.append("strcpy(SMem[" + memoryLocation + "], " + value + ");\r\n");
+            fileText.append("strcpy(&SMem[" + memoryLocation + "], " + value + ");\r\n");
             fileText.append("F23_Time += (60 * " + value.length() + ");\r\n");
         }
 
@@ -936,14 +936,8 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
-    public Object visitIfStatement(ASTIfStatement node, Object data) {
-        // get unique ID
-        int ID = GetID();
-        // Print information about node
-        printNode(ID, "ASTIfStatement");
-        // Iterate through children nodes
-        node.childrenAccept(this, data);
-        // Return to parent node (or move to sibling node if exists)
+    public Object visitIfStatement(ASTIfStatement node) {
+        /* */
         return null;
     }
 
@@ -1167,7 +1161,7 @@ public class SymbolTable implements CompilerVisitor {
 
         ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
         VisitReturn returnData = visitExpression(cnode);
-        fileWriter.addCode("print_string( SMem[" + returnData.memoryLocation + "] );\r\n", "ASTPrintStringStatement");
+        fileWriter.addCode("print_string( &SMem[" + returnData.memoryLocation + "] );\r\n", "ASTPrintStringStatement");
 
         // Iterate through children nodes
         node.childrenAccept(this, data);
