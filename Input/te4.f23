@@ -5,7 +5,7 @@ program tiny_example_4
         integer i;
         double  a;
         i := 441;
-        a := ( 3 * i ) / 2.0d0;
+        a := ( 3 * i ) / 2.0d2;
         print_string( "i = " );
         print_integer( i );
         print_string( ", a = " );

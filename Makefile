@@ -7,6 +7,10 @@ try_te1: treegen gen comp run_te1
 
 try_te2: treegen gen comp run_te2
 
+try_te3: treegen gen comp run_te3
+
+try_te4: treegen gen comp run_te4
+
 treegen: BaseFiles/fresh.jjt
 	jjtree BaseFiles/fresh.jjt
 	copy BaseFiles\BaseNode.java Generated
@@ -29,11 +33,11 @@ run_te2: Input/te2.f23
 #ren .\Output\filename.txt te2.h
 
 run_te3: Input/te3.f23
-	java -cp Compiled Compiler < Input/te1.f23
+	java -cp Compiled Compiler < Input/te3.f23
 #ren .\Output\filename.txt te1.h
 
 run_te4: Input/te4.f23
-	java -cp Compiled Compiler < Input/te2.f23
+	java -cp Compiled Compiler < Input/te4.f23
 #ren .\Output\filename.txt te2.h
 
 run_mg: Input/mg.f23

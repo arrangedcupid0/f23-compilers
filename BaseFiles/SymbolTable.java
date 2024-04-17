@@ -10,9 +10,9 @@ public class SymbolTable implements CompilerVisitor {
 
     // ################## Variables ##################
     private int IDcounter = 0;
-    private boolean returnStmt = false;
     static int labelCounter = 1; // start from 1 because L000 is reserved for main
-    public HashMap<String, SymbolTableEntry> symbolTable = new HashMap<String, SymbolTableEntry>();
+    static int TableIDCounter = 0;
+    public scopedSymbolTable symbolTable = new scopedSymbolTable();
     public MemoryHelper memoryHelper = new MemoryHelper();
     public ClassFileWriter fileWriter = new ClassFileWriter("Output/yourmain.h");
 
@@ -21,10 +21,22 @@ public class SymbolTable implements CompilerVisitor {
         HashMap<String, SymbolTableEntry> symbolTable = new HashMap<String, SymbolTableEntry>();
         scopedSymbolTable parent;
         LinkedList<scopedSymbolTable> children;
+        int scopeLevel = 0;
+        int TableID = 0;
+
+        public scopedSymbolTable() {
+            this.parent = null;
+            this.scopeLevel = 0;
+            this.TableID = TableIDCounter;
+            this.children = new LinkedList<scopedSymbolTable>();
+        }
 
         public scopedSymbolTable(scopedSymbolTable parent) {
             this.parent = parent;
+            this.scopeLevel = parent.scopeLevel + 1;
+            this.TableID = TableIDCounter++;
             this.children = new LinkedList<scopedSymbolTable>();
+            parent.children.add(this);
         }
 
         public void addChild(scopedSymbolTable child) {
@@ -35,15 +47,33 @@ public class SymbolTable implements CompilerVisitor {
             this.symbolTable.put(id, entry);
         }
 
-        // existing methods...
+        public void addLineOfUse(String id, int lineOfUse) {
+            SymbolTableEntry entry = getEntry(id);
+            entry.LineOfUsage.add(lineOfUse);
+        }
 
-        void addEntry(String ID, String Type, int Size, int Dimension, int LineOfDecl, LinkedList<Integer> lineOfUsage,
-                Object Value, int memoryLocation) {
-            String label = String.format("L%03d", labelCounter++); // generate label
-            SymbolTableEntry entry = new SymbolTableEntry(ID, Type, Size, Dimension, LineOfDecl, lineOfUsage, Value,
-                    memoryLocation,
-                    label);
+        public String getNewLabel() {
+            return String.format("L%03d", labelCounter++); // generate label
+        }
+
+        // Overloaded method to add entry with label
+        public void addEntry(String ID, String Type, int Size, int LineOfDecl,
+                Object Value, boolean addLabel) {
+            String label = null;
+            if (addLabel) {
+                if (ID.equals("main")) {
+                    label = "L000"; // reserve L000 for main
+                } else {
+                    label = String.format("L%03d", labelCounter++); // generate label
+                }
+            }
+
+            SymbolTableEntry entry = new SymbolTableEntry(ID, Type, Size, LineOfDecl, null, Value,
+                    memoryHelper.requestVariable(Type), label);
+
             symbolTable.put(ID, entry);
+            addLineOfUse(ID, LineOfDecl);
+
         }
 
         public SymbolTableEntry getEntry(String id) {
@@ -57,77 +87,92 @@ public class SymbolTable implements CompilerVisitor {
             }
         }
 
+        public boolean containsKey(String id) {
+            if (this.symbolTable.containsKey(id)) {
+                return true;
+            } else if (this.parent != null) {
+                return this.parent.containsKey(id);
+            } else {
+                return false;
+            }
+        }
+
+        public void printScopedTable() {
+            System.out.printf("%n--------------------------------%n");
+            System.out.printf("      Symbol Table Values       %n");
+            System.out.printf("      TableID:  %-10s           %n", this.TableID);
+            System.out.printf("      ScopeLevel:  %-10s        %n", this.scopeLevel);
+            System.out.printf("                                %n");
+            System.out.printf("--------------------------------%n");
+            System.out.printf("| %-10s | %-10s| %-10s | %-10s | %-10s | %-10s |%n",
+                    "ID", "Type", "Size", "LineOfDecl", "value", "Label");
+            System.out.printf("--------------------------------%n");
+            for (SymbolTableEntry i : symbolTable.values()) {
+                System.out.printf("| %-10s | %-10s | %-10s | %-10s | %-10s | %-10s |%n",
+                        i.ID, i.Type, i.Size, i.LineOfDecl, i.Value, i.Label);
+            }
+            System.out.printf("--------------------------------%n%n");
+
+            for (scopedSymbolTable i : children) {
+                i.printScopedTable();
+            }
+        }
+
     }
 
     class SymbolTableEntry {
-        // implement scope
-        // this needs to be modified to have parents and children
-        // i.e a tree of symbol tables
+
         String ID;
+        /** INTEGER, DOUBLE, STRING, BOOLEAN, FUNCTION, PROCEDURE */
         String Type;
+        /** for storing string size*/
         Integer Size;
-        Integer Dimension;
+        /** Line that the item was declared on */
         Integer LineOfDecl;
+        /** Line that the item was used on */
         LinkedList<Integer> LineOfUsage;
+        /** Raw value of the object, must be cast */
         Object Value;
+        /** intager version of where it is stored in memory */
         int MemoryLocation;
-        // add label for functions
+        /** Label of the format L###; used for go-tos */
         String Label;
 
         public SymbolTableEntry(
-                String id, String type, Integer size, Integer dimension,
-                Integer lineOfDecl, LinkedList<Integer> lineOfUsage, Object value, int memoryLocation) {
+                String id, String type, Integer size,
+                Integer lineOfDecl, Object value, int memoryLocation) {
             this.ID = id;
-            this.Type = type;
-            this.Dimension = dimension;
+            /// INTEGER, DOUBLE, STRING, BOOLEAN, FUNCTION, PROCEDURE
+            this.Type = type; // INTEGER, DOUBLE, STRING, BOOLEAN, FUNCTION, PROCEDURE
             this.LineOfDecl = lineOfDecl;
-            this.LineOfUsage = lineOfUsage;
+            this.LineOfUsage = new LinkedList<Integer>();
             this.Value = value;
             this.MemoryLocation = memoryLocation;
+            this.Label = null;
         }
 
-        public SymbolTableEntry(String ID, String Type, int Size, int Dimension, int LineOfDecl,
+        public SymbolTableEntry(String ID, String Type, int Size, int LineOfDecl,
                 LinkedList<Integer> lineOfUsage, Object Value, int memoryLocation, String Label) {
-            this(ID, Type, Size, Dimension, LineOfDecl, lineOfUsage, Value, memoryLocation); // call existing constructor
+            this(ID, Type, Size, LineOfDecl, Value, memoryLocation); // call existing constructor
             this.Label = Label; // assign label
         }
     }
 
-    void printTable() {
-        System.out.printf("%n--------------------------------%n");
-        System.out.printf("      Symbol Table Values       %n");
-        System.out.printf("                                %n");
-        System.out.printf("--------------------------------%n");
-        System.out.printf("| %-10s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s |%n",
-                "ID", "Type", "Size", "Dimension", "LineOfDecl", "value", "Label");
-        System.out.printf("--------------------------------%n");
-        for (SymbolTableEntry i : symbolTable.values()) {
-            System.out.printf("| %-10s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s |%n",
-                    i.ID, i.Type, i.Size, i.Dimension, i.LineOfDecl, i.Value, i.Label);
-        }
-        System.out.printf("--------------------------------%n%n");
-    }
-
-    /*
-     * To-Do Implement a helper class for assigning Lables 
-       * or attach it to one of the curent helper functions
-       * 
-       * the symbol table should hold the labe for functions as they are declared
-     * 
-     */
-
     class VisitReturn {
         int memoryLocation;
         String type;
+        String SymbolTableEntry;
 
         public VisitReturn(int memoryLocation, String type) {
             this.memoryLocation = memoryLocation;
             this.type = type;
+            this.SymbolTableEntry = "";
         }
 
         public VisitReturn() {
             this.memoryLocation = -1;
             this.type = "";
+            this.SymbolTableEntry = "";
         }
     }
 
@@ -156,7 +201,6 @@ public class SymbolTable implements CompilerVisitor {
         private void initializeRegisters() {
             for (int i = 0; i < MAX_INT_REGISTERS; i++) {
                 intRegisters.add(i);
-                intRegisters.add(i); // Added: Add all int registers as available
             }
             for (int i = 0; i < MAX_FLOAT_REGISTERS; i++) {
                 floatRegisters.add(i);
@@ -380,13 +424,13 @@ public class SymbolTable implements CompilerVisitor {
         printNode(ID, "ASTProgram");
 
         fileWriter.addCode("int yourmain()\r\n" + "{\r\n", "ASTProgram");
-
+        fileWriter.addCode("goto L000;\r\n", "ASTProgram");
         // Iterate through children nodes
         node.childrenAccept(this, data);
 
-        fileWriter.addCode("return 0;\r\n}", "ASTProgram");
+        fileWriter.addCode("}", "ASTProgram");
         printfooter();
-        printTable();
+        symbolTable.printScopedTable();
         // finish walk
         fileWriter.writeToFile();
         return null;
@@ -407,16 +451,30 @@ public class SymbolTable implements CompilerVisitor {
      * - 2          Required             ASTParameterList
      * - 3          Required             ASTBlock
      */
-    //ToDo: add a label for the function and record it in symbol table
-    //      store/access parameter list in global Variable P?
-    //      Should also access the return label to return to where the function was called
     public Object visit(ASTFunctionDeclaration node, Object data) {
         // get unique ID
         int ID = GetID();
+        String functionName = (String) node.data.get("Value");
+        System.out.println("Function Name: " + functionName);
+        int lineOfDecl = (int) node.data.get("LineNo");
         // Print information about node
         printNode(ID, "ASTFunctionDeclaration");
+        // add function and label to symbol table
+        symbolTable.addEntry(functionName, "FUNCTION", 0, lineOfDecl, functionName, true);
+
+        // Insert label for procedure
+        fileWriter.addCode(symbolTable.getEntry(functionName).Label + ":\r\n", "ASTFunctionDeclaration");
+        // increase scope
+        symbolTable = new scopedSymbolTable(symbolTable);
         // Iterate through children nodes
         node.childrenAccept(this, data);
+        if (!functionName.equals("main")) {
+            fileWriter.addCode("goto *P[0];\r\n", "ASTFunctionDeclaration");
+        } else {
+            fileWriter.addCode("return 0;\r\n", "ASTFunctionDeclaration");
+        }
+        // decrease scope
+        symbolTable = symbolTable.parent;
         // Return to parent node (or move to sibling node if exists)
         return null;
     }
@@ -435,16 +493,25 @@ public class SymbolTable implements CompilerVisitor {
      * - 1          Required             ASTParameterList
      * - 2          Required             ASTBlock
      */
-    // ToDo: add a label for the procedure and record it in symbol table
-    //      store/access parameter list in global Variable P?
-    //      Should also access the return label to return to where the function was called
     public Object visit(ASTProcedureDeclaration node, Object data) {
         // get unique ID
         int ID = GetID();
-        // Print information about node
+        String procedureName = (String) node.data.get("Value");
+        int lineOfDecl = (int) node.data.get("LineNo");
+        // Print information about node jjtThis.data.put("Value", t.image);
         printNode(ID, "ASTProcedureDeclaration");
+        // add function and label to symbol table
+        symbolTable.addEntry(procedureName, "PROCEDURE", 0, lineOfDecl, procedureName, true);
+
+        // Insert label for procedure
+        fileWriter.addCode(symbolTable.getEntry(procedureName).Label + ":\r\n", "ASTProcedureDeclaration");
+        // increase scope
+        symbolTable = new scopedSymbolTable(symbolTable);
         // Iterate through children nodes
         node.childrenAccept(this, data);
+        fileWriter.addCode("goto *P[0];\r\n", "ASTProcedureDeclaration");
+        // decrease scope
+        symbolTable = symbolTable.parent;
         // Return to parent node (or move to sibling node if exists)
         return null;
     }
@@ -460,12 +527,16 @@ public class SymbolTable implements CompilerVisitor {
      * --------------------------------------------------------
      * - 1+ (Incrementing)  Optional            ASTParameter
      */
-    // ToDo: initalize the parameter list here? then let children add to it?
     public Object visit(ASTParameterList node, Object data) {
         // get unique ID
         int ID = GetID();
+        ASTParameter cnode;
         // Print information about node
         printNode(ID, "ASTParameterList");
+        for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+            cnode = (ASTParameter) node.jjtGetChild(i);
+            visitParameter(cnode, i + 1);
+        }
         // Iterate through children nodes
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
@@ -487,12 +558,40 @@ public class SymbolTable implements CompilerVisitor {
     public Object visit(ASTParameter node, Object data) {
         // get unique ID
         int ID = GetID();
-        // Print information about node
+        // Print information about nodes
         printNode(ID, "ASTParameter");
         // Iterate through children nodes
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
         return null;
+    }
+
+    public VisitReturn visitParameter(ASTParameter node, int parameterNumber) {
+        ASTType cnode = (ASTType) node.jjtGetChild(0);
+        ASTVariableDeclaratorId cnode2 = (ASTVariableDeclaratorId) node.jjtGetChild(1);
+
+        // get the name of the variable
+        String Type = (String) cnode.data.get("Type");
+        String VarID = (String) cnode2.data.get("Value");
+        int lineOfDecl = (int) cnode2.data.get("LineNo");
+        System.out.println("VarID: " + VarID);
+
+        // add to symbol table
+        symbolTable.addEntry(VarID, Type, lineOfDecl, lineOfDecl, VarID, false);
+        fileWriter.addComment(
+                "Variable Declaration: " + VarID + " at mem location " + symbolTable.getEntry(VarID).MemoryLocation,
+                "ASTLocalVariableDeclaration");
+        if (Type.equals("INTEGER")) {
+            fileWriter.addCode("Mem[" + symbolTable.getEntry(VarID).MemoryLocation + "] = P[" + parameterNumber + "];",
+                    "ASTParameter");
+        } else if (Type.equals("DOUBLE")) {
+            fileWriter.addCode("FMem[" + symbolTable.getEntry(VarID).MemoryLocation + "] = P[" + parameterNumber + "];",
+                    "ASTParameter");
+        } else {
+            throw new RuntimeException("Error: Type " + Type + " is not supported for parameters");
+        }
+        fileWriter.addCode("", "ASTParameter");
+        return new VisitReturn(symbolTable.getEntry(VarID).MemoryLocation, Type);
     }
 
     /**
@@ -654,7 +753,7 @@ public class SymbolTable implements CompilerVisitor {
      * - Child #    Required/Optional    Type
      * --------------------------------------------------------
      * - 1         Required              ASTType
-     * - 2         Required              
+     * - 2         Required              ASTVariableDeclaratorId
      * - 3         Optional              ASTVariableDeclarator
      */
     public Object visit(ASTLocalVariableDeclaration node, Object data) {
@@ -676,32 +775,15 @@ public class SymbolTable implements CompilerVisitor {
         ASTVariableDeclarator cnode2 = (ASTVariableDeclarator) node.jjtGetChild(1);
         ASTVariableDeclaratorId cnode3 = (ASTVariableDeclaratorId) cnode2.jjtGetChild(0);
         String VarID = (String) cnode3.data.get("Value");
+        int lineOfDecl = (int) cnode3.data.get("LineNo");
         System.out.println("VarID: " + VarID);
 
         // add to symbol table
-        switch (Type) {
-            case "INTEGER":
-                symbolTable.put(VarID,
-                        new SymbolTableEntry(VarID, "INTEGER", null, null, null, null, null,
-                                memoryHelper.requestVariable("INTEGER")));
-
-                break;
-            case "DOUBLE":
-                symbolTable.put(VarID,
-                        new SymbolTableEntry(VarID, "DOUBLE", null, null, null, null, null,
-                                memoryHelper.requestVariable("DOUBLE")));
-
-                break;
-            case "STRING":
-                symbolTable.put(VarID,
-                        new SymbolTableEntry(VarID, "STRING", null, null, null, null, null,
-                                memoryHelper.requestVariable("STRING")));
-
-                break;
-        }
-        fileWriter.addComment("Variable Declaration: " + VarID + " at mem location " + symbolTable
-                .get(VarID).MemoryLocation, "ASTLocalVariableDeclaration");
-        return new VisitReturn(symbolTable.get(VarID).MemoryLocation, Type);
+        symbolTable.addEntry(VarID, Type, lineOfDecl, lineOfDecl, VarID, false);
+        fileWriter.addComment(
+                "Variable Declaration: " + VarID + " at mem location " + symbolTable.getEntry(VarID).MemoryLocation,
+                "ASTLocalVariableDeclaration");
+        return new VisitReturn(symbolTable.getEntry(VarID).MemoryLocation, Type);
     }
 
     /**
@@ -779,6 +861,18 @@ public class SymbolTable implements CompilerVisitor {
             } else if (returnData.type == "INTEGER") {
                 register1 = memoryHelper.requestIntRegister();
                 registerString1 = "R[" + register1 + "]";
+            } else if (returnData.type == "STRING") {
+                if (assign.equals("=")) {
+                    register1 = memoryHelper.requestVariable(returnData.type);
+                    String MemLoc1 = "SMem[" + returnData1.memoryLocation + "]";
+                    fileWriter.LoadStrToSMem(returnData.memoryLocation, MemLoc1, "ASTStatementExpression");
+                    memoryHelper.returnVariable(returnData1.memoryLocation, returnData1.type);
+                    return returnData;
+                } else {
+                    throw new RuntimeException(
+                            "Error: Type " + returnData.type + " is not supported for the " + assign
+                                    + " assignment expression");
+                }
             } else {
                 throw new RuntimeException(
                         "Error: Type " + returnData.type + " is not supported for assignment expression");
@@ -1325,7 +1419,7 @@ public class SymbolTable implements CompilerVisitor {
         ASTConditionalAndExpression cnode1, cnode2;
         VisitReturn returnData = new VisitReturn(), returnData1 = new VisitReturn(), returnData2 = new VisitReturn();
         int register1 = -1, register2 = -1, register3 = -1;
-        String equality = "", registerString1 = "", registerString2 = "";
+        String registerString1 = "", registerString2 = "";
 
         if (node.jjtGetNumChildren() == 1) {
             ASTConditionalAndExpression cnode = (ASTConditionalAndExpression) node.jjtGetChild(0);
@@ -1335,7 +1429,6 @@ public class SymbolTable implements CompilerVisitor {
             returnData.memoryLocation = memoryHelper.requestVariable("BOOLEAN");
             // iterate through pairs of children
             for (int i = 0; i < node.jjtGetNumChildren() - 1; i++) {
-                equality = node.data.get(i + 1).toString();
                 if (i == 0) {
                     // first pass get both children
                     cnode1 = (ASTConditionalAndExpression) node.jjtGetChild(i);
@@ -1438,7 +1531,7 @@ public class SymbolTable implements CompilerVisitor {
         ASTEqualityExpression cnode1, cnode2;
         VisitReturn returnData = new VisitReturn(), returnData1 = new VisitReturn(), returnData2 = new VisitReturn();
         int register1 = -1, register2 = -1, register3 = -1;
-        String equality = "", registerString1 = "", registerString2 = "";
+        String registerString1 = "", registerString2 = "";
 
         if (node.jjtGetNumChildren() == 1) {
             ASTEqualityExpression cnode = (ASTEqualityExpression) node.jjtGetChild(0);
@@ -1448,7 +1541,6 @@ public class SymbolTable implements CompilerVisitor {
             returnData.memoryLocation = memoryHelper.requestVariable("BOOLEAN");
             // iterate through pairs of children
             for (int i = 0; i < node.jjtGetNumChildren() - 1; i++) {
-                equality = node.data.get(i + 1).toString();
                 if (i == 0) {
                     // first pass get both children
                     cnode1 = (ASTEqualityExpression) node.jjtGetChild(i);
@@ -1568,10 +1660,10 @@ public class SymbolTable implements CompilerVisitor {
                     ASTRelationalExpression cnode1 = (ASTRelationalExpression) node.jjtGetChild(i);
                     ASTRelationalExpression cnode2 = (ASTRelationalExpression) node.jjtGetChild(i + 1);
                     // load variables
-                    returnData1 = visitRelationalExpression((ASTRelationalExpression) node.jjtGetChild(i));
-                    returnData2 = visitRelationalExpression((ASTRelationalExpression) node.jjtGetChild(i + 1));
+                    returnData1 = visitRelationalExpression((ASTRelationalExpression) cnode1.jjtGetChild(i));
+                    returnData2 = visitRelationalExpression((ASTRelationalExpression) cnode2.jjtGetChild(i + 1));
                 } else {
-                    // prep next node for multiplication
+                    // prep next node for comparison
                     ASTRelationalExpression cnode2 = (ASTRelationalExpression) node.jjtGetChild(i + 1);
                     returnData1 = returnData;
                     returnData2 = visitRelationalExpression(cnode2);
@@ -1664,7 +1756,7 @@ public class SymbolTable implements CompilerVisitor {
         // get unique ID
         int ID = GetID();
         // Print information about node
-        printNode(ID, "ASTMultiplicativeExpression");
+        printNode(ID, "ASTRelationalExpression");
         // Iterate through children nodes
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
@@ -1783,7 +1875,7 @@ public class SymbolTable implements CompilerVisitor {
         // get unique ID
         int ID = GetID();
         // Print information about node
-        printNode(ID, "ASTMultiplicativeExpression");
+        printNode(ID, "ASTAdditiveExpression");
         // Iterate through children nodes
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
@@ -1981,7 +2073,10 @@ public class SymbolTable implements CompilerVisitor {
                         returnData.type = "INTEGER";
                     }
                     register1 = memoryHelper.requestIntRegister();
+                    fileWriter.addComment("register1: " + register1, "ASTMultiplicativeExpression");
                     register2 = memoryHelper.requestIntRegister();
+                    fileWriter.addComment("register2: " + register2, "ASTMultiplicativeExpression");
+
                     fileWriter.loadRegister(register1, returnData1.memoryLocation, returnData1.type,
                             "ASTMultiplicativeExpression");
                     fileWriter.loadRegister(register2, returnData2.memoryLocation, returnData2.type,
@@ -2234,7 +2329,7 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
-    //A[I][J][K]
+    //A[I][J][K] or funtion calls
     public VisitReturn visitPrimaryExpression(ASTPrimaryExpression node) {
         VisitReturn visitReturn = new VisitReturn();
         // if one child then only a prefix
@@ -2246,8 +2341,14 @@ public class SymbolTable implements CompilerVisitor {
         }
         // Suffixed expression exists
         else {
-            // see slide 141 - 144
-            throw new RuntimeException("To-Do: Need to implement Suffixes.");
+            // get the prefix
+            ASTPrimaryPrefix cnode = (ASTPrimaryPrefix) node.jjtGetChild(0);
+            visitReturn = visitPrimaryPrefix(cnode);
+            // iterate through the suffixes
+            for (int i = 1; i < node.jjtGetNumChildren(); i++) {
+                ASTPrimarySuffix cnode1 = (ASTPrimarySuffix) node.jjtGetChild(i);
+                visitReturn = visitPrimarySuffix(cnode1, visitReturn);
+            }
         }
         return visitReturn;
     }
@@ -2290,7 +2391,8 @@ public class SymbolTable implements CompilerVisitor {
     /**
      * Description:
      * - either holds a expression in brackets or arguments
-     * 
+     * - Expression in brackets is an array
+     * - Arguments are for function calls
      * Stored Data:
      * - No stored Data
      * 
@@ -2308,6 +2410,24 @@ public class SymbolTable implements CompilerVisitor {
         node.childrenAccept(this, data);
         // Return to parent node (or move to sibling node if exists)
         return null;
+    }
+
+    public VisitReturn visitPrimarySuffix(ASTPrimarySuffix node, VisitReturn vr) {
+        VisitReturn visitReturn = new VisitReturn();
+        if (node.jjtGetChild(0) instanceof ASTArguments) {
+            ASTArguments cnode = (ASTArguments) node.jjtGetChild(0);
+            visitReturn = visitArguments(cnode);
+            String returnLabel = symbolTable.getNewLabel();
+            fileWriter.addCode("P[0] = &" + returnLabel + ";\r\n",
+                    "ASTArguments");
+            fileWriter.addCode(
+                    "goto " + symbolTable.getEntry(vr.SymbolTableEntry).Label + ";", "ASTPrimarySuffix");
+            fileWriter.addCode(returnLabel + ":\r\n", "ASTArguments");
+        } else {
+            ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
+            visitReturn = visitExpression(cnode);
+        }
+        return visitReturn;
     }
 
     /**
@@ -2342,8 +2462,11 @@ public class SymbolTable implements CompilerVisitor {
 
         switch (type) {
             case "IDENTIFIER":
-                visitReturn.type = symbolTable.get(value).Type;
-                visitReturn.memoryLocation = symbolTable.get(value).MemoryLocation;
+                visitReturn.type = symbolTable.getEntry(value).Type;
+                visitReturn.memoryLocation = symbolTable.getEntry(value).MemoryLocation;
+                visitReturn.SymbolTableEntry = value;
+                System.out.println("Type: " + visitReturn.type + " Memory Location: " + visitReturn.memoryLocation
+                        + " Symbol Table Entry: " + visitReturn.SymbolTableEntry);
                 break;
             case "ICONSTANT":
                 visitReturn.type = "INTEGER";
@@ -2352,6 +2475,9 @@ public class SymbolTable implements CompilerVisitor {
             case "DCONSTANT":
                 visitReturn.type = "DOUBLE";
                 visitReturn.memoryLocation = memoryHelper.requestVariable("DOUBLE");
+                if (value.contains("d")) {
+                    value = String.valueOf(formatDPE(value));
+                }
                 break;
             case "SCONSTANT":
                 visitReturn.type = "STRING";
@@ -2403,6 +2529,16 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    public VisitReturn visitArguments(ASTArguments node) {
+        VisitReturn visitReturn = new VisitReturn();
+        if (node.jjtGetNumChildren() == 1) {
+            ASTArgumentList cnode = (ASTArgumentList) node.jjtGetChild(0);
+            visitReturn = visitArgumentList(cnode);
+        }
+
+        return visitReturn;
+    }
+
     /**
      * Description:
      * - matches a list of arguments
@@ -2427,7 +2563,40 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    public VisitReturn visitArgumentList(ASTArgumentList node) {
+        VisitReturn visitReturn = new VisitReturn();
+        fileWriter.addComment("/* Arguments */\r\n", "ASTArgumentList");
+        for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+            ASTExpression cnode = (ASTExpression) node.jjtGetChild(i);
+            visitReturn = visitExpression(cnode);
+            if (visitReturn.type == "INTEGER") {
+                fileWriter.addCode("P[" + (i + 1) + "] = &Mem[" + visitReturn.memoryLocation + "];\r\n",
+                        "ASTArgumentList");
+            } else if (visitReturn.type == "DOUBLE") {
+                fileWriter.addCode("P[" + (i + 1) + "] = &FMem[" + visitReturn.memoryLocation + "];\r\n",
+                        "ASTArgumentList");
+            } else if (visitReturn.type == "STRING") {
+                fileWriter.addCode("P[" + (i + 1) + "] = &SMem[" + visitReturn.memoryLocation + "];\r\n",
+                        "ASTArgumentList");
+            } else {
+                throw new RuntimeException("Error: Type " + visitReturn.type + " is not supported for arguments.");
+            }
+
+        }
+        return visitReturn;
+    }
+
     //************ Helper Functions **********************************************/
+    // format a double precision exponent into a double
+    // convert the format from 2.0d5 to 200000.0
+    public double formatDPE(String doublePE) {
+        String[] parts = doublePE.split("d");
+        double mantissa = Double.parseDouble(parts[0]);
+        int exponent = Integer.parseInt(parts[1]);
+        double result = mantissa * Math.pow(10, exponent);
+        return result;
+    }
+
     private void printHeader() {
         System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++");
         System.out.println("Walking Through the Parse Tree");

@@ -103,13 +103,13 @@ ASTProgram program() #Program:
 void functionDeclaration() #FunctionDeclaration:
 {Token t; System.out.println("FunctionDeclaration");}
 {
-	<K_FUNCTION> type() t=<IDENTIFIER>{jjtThis.data.put("Value", t.image);} parameterList() block() {}
+	<K_FUNCTION> type() t=<IDENTIFIER>{jjtThis.data.put("Value", t.image);jjtThis.data.put("LineNo", t.beginLine);} parameterList() block() {}
 }
 
 void procedureDeclaration() #ProcedureDeclaration:
 {Token t; System.out.println("procedureDeclaration");}
 {
-    <K_PROCEDURE> t=<IDENTIFIER>{jjtThis.data.put("Value", t.image);} parameterList() block() {}
+    <K_PROCEDURE> t=<IDENTIFIER>{jjtThis.data.put("Value", t.image);jjtThis.data.put("LineNo", t.beginLine);} parameterList() block() {}
 }
 
 void parameterList() #ParameterList:
@@ -133,7 +133,7 @@ void variableDeclarator() #VariableDeclarator:
 void variableDeclaratorId() #VariableDeclaratorId:
 { Token t; System.out.println("VariableDeclaratorId");}
 {
-	t=<IDENTIFIER> {jjtThis.data.put("Value", t.image);}( <K_LBRACKET> (expression())? <K_RBRACKET> )*
+	t=<IDENTIFIER> {jjtThis.data.put("Value", t.image); jjtThis.data.put("LineNo", t.beginLine);}( <K_LBRACKET> (expression())? <K_RBRACKET> )*
 }
 
 void type() #Type:
@@ -331,7 +331,7 @@ void multiplicativeExpression() #MultiplicativeExpression:
 	Token t;
 	System.out.println("MultiplicativeExpression");}
 {
-	unaryExpression() ((t=<K_MULTIPLY> {jjtThis.data.put(i,"MULTIPLY"); i++;} | t=<K_DIVIDE> {} | t=<K_MOD>{} ) unaryExpression())*
+	unaryExpression() ((t=<K_MULTIPLY> {jjtThis.data.put(i,"MULTIPLY"); i++;} | t=<K_DIVIDE> {jjtThis.data.put(i,"DIVIDE"); i++;} | t=<K_MOD>{jjtThis.data.put(i,"MOD"); i++;} ) unaryExpression())*
 }
 void unaryExpression() #UnaryExpression:
 { Token t; System.out.println("UnaryExpression");}
@@ -366,10 +366,10 @@ void literal() #Literal:
 	System.out.println("Literal");
 	}
 {
-	t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image);} 
-	| t=<ICONSTANT>{jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image);}
-	| t=<DCONSTANT>{jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image);}
-	| t=<SCONSTANT>{jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image);}
+	t=<IDENTIFIER> {jjtThis.data.put("Type","IDENTIFIER"); jjtThis.data.put("Value", t.image);  jjtThis.data.put("LineNo", t.beginLine);} 
+	| t=<ICONSTANT>{jjtThis.data.put("Type","ICONSTANT"); jjtThis.data.put("Value", t.image); jjtThis.data.put("LineNo", t.beginLine);}
+	| t=<DCONSTANT>{jjtThis.data.put("Type","DCONSTANT"); jjtThis.data.put("Value", t.image); jjtThis.data.put("LineNo", t.beginLine);}
+	| t=<SCONSTANT>{jjtThis.data.put("Type","SCONSTANT"); jjtThis.data.put("Value", t.image); jjtThis.data.put("LineNo", t.beginLine);}
 }
 void arguments() #Arguments:
 { /*Variable Declarations*/ System.out.println("Arguments");}
