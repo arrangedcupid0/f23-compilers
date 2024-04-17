@@ -1,0 +1,13 @@
+program doLoop {
+    function integer main()
+    {
+        integer i;
+
+        do ( i := 0; i < 25; i++ )
+        {
+            print_integer( i );
+        }
+
+        print_string( "Finished\n" );
+    }
+}

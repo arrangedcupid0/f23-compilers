@@ -1,0 +1,15 @@
+program ifStatements {
+    function integer main()
+    {
+        integer var1 := 5;
+        integer var2 := 10;
+
+        if (var1 == var2) then {
+            print_string( "Equal" );
+        }
+        else {
+            print_string( "Not Equal" );
+        }
+        
+    }
+}

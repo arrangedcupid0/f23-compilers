@@ -185,6 +185,9 @@ public class SymbolTable implements CompilerVisitor {
         private int MemCounter; // counter for int variables
         private int FMemCounter; // counter for DOUBLE variables
         private int SMemCounter; // counter for string variables
+        public int MaxIntCounter; // counter for int variables
+        public int MaxFMemCounter; // counter for DOUBLE variables
+        public int MaxSMemCounter; // counter for string variables
         private static final int MAX_INT_REGISTERS = 32; // Maximum number of int registers
         private static final int MAX_FLOAT_REGISTERS = 16; // Maximum number of float registers
 
@@ -195,6 +198,8 @@ public class SymbolTable implements CompilerVisitor {
             FMem = new LinkedList<>();
             SMem = new LinkedList<>();
             MemCounter = 0;
+            MaxIntCounter = 0;
+
             initializeRegisters(); // Added: Initialize registers
         }
 
@@ -274,24 +279,28 @@ public class SymbolTable implements CompilerVisitor {
                 if (!Mem.isEmpty()) {
                     return Mem.removeFirst();
                 } else {
+                    MaxIntCounter++;
                     return MemCounter++;
                 }
             } else if (type.equals("DOUBLE")) {
                 if (!FMem.isEmpty()) {
                     return FMem.removeFirst();
                 } else {
+                    MaxFMemCounter++;
                     return FMemCounter++;
                 }
             } else if (type.equals("STRING")) {
                 if (!SMem.isEmpty()) {
                     return SMem.removeFirst();
                 } else {
+                    MaxSMemCounter++;
                     return SMemCounter++;
                 }
             } else if (type.equals("BOOLEAN")) {
                 if (!Mem.isEmpty()) {
                     return Mem.removeFirst();
                 } else {
+                    MaxIntCounter++;
                     return MemCounter++;
                 }
             } else {
@@ -322,7 +331,7 @@ public class SymbolTable implements CompilerVisitor {
 
         public void loadRegister(int register, int memoryLocation, String type, String functionName) {
             fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
-            if (type.equals("INTEGER")) {
+            if (type.equals("INTEGER") || type.equals("BOOLEAN")) {
                 fileText.append("R[" + register + "] = Mem[SR+" + memoryLocation + "];\r\n");
                 fileText.append("F23_Time += (20 + 1);\r\n");
             } else if (type.equals("DOUBLE")) {
@@ -336,7 +345,7 @@ public class SymbolTable implements CompilerVisitor {
 
         public void loadRegister(int register, String type, String value, String functionName) {
             fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
-            if (type.equals("INTEGER")) {
+            if (type.equals("INTEGER") || type.equals("BOOLEAN")) {
                 fileText.append("R[" + register + "] = " + value + ";\r\n");
                 fileText.append("F23_Time += (1);\r\n");
             } else if (type.equals("DOUBLE")) {
@@ -350,7 +359,7 @@ public class SymbolTable implements CompilerVisitor {
 
         public void storeRegister(int register, VisitReturn vr, String functionName) {
             fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
-            if (vr.type.equals("INTEGER")) {
+            if (vr.type.equals("INTEGER") || vr.type.equals("BOOLEAN")) {
                 fileText.append("Mem[SR+" + vr.memoryLocation + "] = R[" + register + "];\r\n");
                 fileText.append("F23_Time += (20 + 1);\r\n");
             } else if (vr.type.equals("DOUBLE")) {
@@ -365,6 +374,22 @@ public class SymbolTable implements CompilerVisitor {
             fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
             fileText.append("strcpy(&SMem[" + memoryLocation + "], " + value + ");\r\n");
             fileText.append("F23_Time += (60 * " + value.length() + ");\r\n");
+        }
+
+        public void prependCode(String code, String functionName) {
+            fileText.insert(0, "\t\t\t// Generated from function: " + functionName + "\r\n");
+            fileText.insert(0, code);
+        }
+
+        public void prependHeader() {
+            String code = "int yourmain()\r\n" + "{\r\n"
+                    + "int*    P[16];\r\n"
+                    + "FR = " + (memoryHelper.MaxIntCounter + memoryHelper.MaxIntCounter % 2)
+                    + ";\r\n"
+                    + "FR = FR >> 1; \r\n"
+                    + "goto L000;\r\n";
+
+            prependCode(code, "Header");
         }
 
         public void writeToFile() {
@@ -422,12 +447,9 @@ public class SymbolTable implements CompilerVisitor {
 
         // Print information about node
         printNode(ID, "ASTProgram");
-        fileWriter.addCode("int yourmain()\r\n" + "{\r\n", "ASTProgram");
-        fileWriter.addCode("int*    P[16];\r\n", "ASTProgram");
-        fileWriter.addCode("goto L000;\r\n", "ASTProgram");
         // Iterate through children nodes
         node.childrenAccept(this, data);
-
+        fileWriter.prependHeader();
         fileWriter.addCode("}", "ASTProgram");
         printfooter();
         symbolTable.printScopedTable();
@@ -619,6 +641,30 @@ public class SymbolTable implements CompilerVisitor {
         return null;
     }
 
+    public VisitReturn visitVariableDeclarator(ASTVariableDeclarator node) {
+        ASTVariableDeclaratorId cnode = (ASTVariableDeclaratorId) node.jjtGetChild(0);
+        String VarID = (String) cnode.data.get("Value");
+        int lineOfDecl = (int) cnode.data.get("LineNo");
+        System.out.println("VarID: " + VarID);
+
+        // get the value of the variable
+        VisitReturn returnData = new VisitReturn();
+        if (node.jjtGetNumChildren() == 2) {
+            ASTExpression cnode2 = (ASTExpression) node.jjtGetChild(1);
+            returnData = visitExpression(cnode2);
+        }
+        // add to symbol table
+        symbolTable.addEntry(VarID, "INTEGER", lineOfDecl, lineOfDecl, VarID, false);
+        fileWriter.addComment(
+                "Variable Declaration: " + VarID + " at mem location " + symbolTable.getEntry(VarID).MemoryLocation,
+                "ASTVariableDeclarator");
+        if (returnData.memoryLocation != -1) {
+            fileWriter.loadRegister(0, returnData.memoryLocation, returnData.type, "ASTVariableDeclarator");
+            fileWriter.storeRegister(0, returnData, "ASTVariableDeclarator");
+        }
+        return returnData;
+    }
+
     /**
      * Description:
      * - Holds the Name Identifier
@@ -770,20 +816,58 @@ public class SymbolTable implements CompilerVisitor {
         String Type;
         ASTType cnode = (ASTType) node.jjtGetChild(0);
         Type = (String) cnode.data.get("Type");
+        int register = -1;
 
         // get the name of the variable
         ASTVariableDeclarator cnode2 = (ASTVariableDeclarator) node.jjtGetChild(1);
         ASTVariableDeclaratorId cnode3 = (ASTVariableDeclaratorId) cnode2.jjtGetChild(0);
+
         String VarID = (String) cnode3.data.get("Value");
         int lineOfDecl = (int) cnode3.data.get("LineNo");
         System.out.println("VarID: " + VarID);
+
+        VisitReturn visitreturn1 = new VisitReturn();
+        if (cnode2.jjtGetNumChildren() == 2) {
+            // ASTVariableDeclarator has an expression to assign to the variable
+            System.out.println("Value being assigned to: " + VarID);
+            ASTExpression cnode4 = (ASTExpression) cnode2.jjtGetChild(1);
+            visitreturn1 = visitExpression(cnode4);
+            // load register with expression value
+            if (visitreturn1.type.equals("INTEGER")) {
+                register = memoryHelper.requestIntRegister();
+                fileWriter.loadRegister(
+                        register, visitreturn1.memoryLocation, visitreturn1.type, "ASTLocalVariableDeclaration");
+            } else if (visitreturn1.type.equals("DOUBLE")) {
+                register = memoryHelper.requestFloatRegister();
+                fileWriter.loadRegister(
+                        register, visitreturn1.memoryLocation, visitreturn1.type, "ASTLocalVariableDeclaration");
+            } else {
+                throw new RuntimeException("Error: Type " + visitreturn1.type + " is not supported for assignment");
+            }
+
+        }
 
         // add to symbol table
         symbolTable.addEntry(VarID, Type, lineOfDecl, lineOfDecl, VarID, false);
         fileWriter.addComment(
                 "Variable Declaration: " + VarID + " at mem location " + symbolTable.getEntry(VarID).MemoryLocation,
                 "ASTLocalVariableDeclaration");
-        return new VisitReturn(symbolTable.getEntry(VarID).MemoryLocation, Type);
+        VisitReturn visitreturn = new VisitReturn(symbolTable.getEntry(VarID).MemoryLocation, Type);
+        if (cnode2.jjtGetNumChildren() == 2) {
+            fileWriter.storeRegister(register, visitreturn, "ASTLocalVariableDeclaration");
+            if (visitreturn1.type.equals("INTEGER")) {
+                memoryHelper.returnIntRegister(register);
+            } else if (visitreturn1.type.equals("DOUBLE")) {
+                memoryHelper.returnFloatRegister(register);
+            } else {
+                throw new RuntimeException("Error: Type " + visitreturn1.type + " is not supported for assignment");
+            }
+        }
+        if (node.jjtGetNumChildren() == 3) {
+            // throw not implented
+            throw new RuntimeException("Error: Complex Variable assignment not implemented");
+        }
+        return visitreturn;
     }
 
     /**
@@ -832,7 +916,8 @@ public class SymbolTable implements CompilerVisitor {
         if (node.jjtGetNumChildren() == 1 && node.data.get("CREMENT") == null) {
             return returnData;
         } else if (node.jjtGetNumChildren() == 1 && node.data.get("CREMENT") != null) {
-            if (returnData1.type == "INTEGER") {
+            System.out.println("Type: " + returnData.type);
+            if (returnData.type.equals("INTEGER")) {
                 register1 = memoryHelper.requestIntRegister();
                 registerString1 = "R[" + register1 + "]";
             } else {
@@ -928,16 +1013,38 @@ public class SymbolTable implements CompilerVisitor {
     public Object visit(ASTIfStatement node, Object data) {
         // get unique ID
         int ID = GetID();
+        String iflabel = symbolTable.getNewLabel();
+        String elselabel = symbolTable.getNewLabel();
+        String endlabel = symbolTable.getNewLabel();
         // Print information about node
         printNode(ID, "ASTIfStatement");
-        // Iterate through children nodes
-        node.childrenAccept(this, data);
-        // Return to parent node (or move to sibling node if exists)
-        return null;
-    }
+        // get value of expression
+        ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
+        VisitReturn returnData = visitExpression(cnode);
+        int register = memoryHelper.requestIntRegister();
+        fileWriter.loadRegister(register, returnData.memoryLocation, "BOOLEAN", "ASTIfStatement");
+        fileWriter.addCode("if (R[" + register + "]) goto " + iflabel + ";", "ASTIfStatement");
+        memoryHelper.returnIntRegister(register);
+        if (node.jjtGetNumChildren() == 3) {
+            fileWriter.addCode("goto " + elselabel + ";\r\n", "ASTIfStatement");
+        } else {
+            fileWriter.addCode("goto " + endlabel + ";\r\n", "ASTIfStatement");
+        }
+        fileWriter.addCode(iflabel + ":\r\n", "ASTIfStatement");
+        ASTStatement cnode1 = (ASTStatement) node.jjtGetChild(1);
+        cnode1.jjtAccept(this, data);
+        fileWriter.addCode("goto " + endlabel + ";\r\n", "ASTIfStatement");
+        if (node.jjtGetNumChildren() == 3) {
+            fileWriter.addCode(elselabel + ":\r\n", "ASTIfStatement");
+            ASTStatement cnode2 = (ASTStatement) node.jjtGetChild(2);
+            cnode2.jjtAccept(this, data);
+            fileWriter.addCode("goto " + endlabel + ";\r\n", "ASTIfStatement");
+        }
+        fileWriter.addCode(endlabel + ":\r\n", "ASTIfStatement");
 
-    public Object visitIfStatement(ASTIfStatement node) {
-        /* */
+        // Iterate through children nodes
+        //node.childrenAccept(this, data);
+        // Return to parent node (or move to sibling node if exists)
         return null;
     }
 
@@ -959,10 +1066,32 @@ public class SymbolTable implements CompilerVisitor {
     public Object visit(ASTWhileStatement node, Object data) {
         // get unique ID
         int ID = GetID();
+        String startLabel = symbolTable.getNewLabel();
+        String whilelabel = symbolTable.getNewLabel();
+        String endlabel = symbolTable.getNewLabel();
+
         // Print information about node
         printNode(ID, "ASTWhileStatement");
-        // Iterate through children nodes
-        node.childrenAccept(this, data);
+        fileWriter.addComment("Start of While-Statement \r\n", "ASTWhileStatement");
+        fileWriter.addCode(startLabel + ":\r\n", "ASTWhileStatement");
+        // get value of expression
+        fileWriter.addComment("Evaluate if condidtion \r\n", "ASTWhileStatement");
+        ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
+        VisitReturn returnData = visitExpression(cnode);
+        int register = memoryHelper.requestIntRegister();
+        fileWriter.loadRegister(register, returnData.memoryLocation, "BOOLEAN", "ASTWhileStatement");
+        fileWriter.addComment("Test If-Condition \r\n", "ASTWhileStatement");
+        fileWriter.addCode("if (R[" + register + "]) goto " + whilelabel + ";", "ASTWhileStatement");
+        memoryHelper.returnIntRegister(register);
+        fileWriter.addCode("goto " + endlabel + ";\r\n", "ASTWhileStatement");
+        fileWriter.addComment("Start of While-Logic \r\n", "ASTWhileStatement");
+        fileWriter.addCode(whilelabel + ":\r\n", "ASTWhileStatement");
+        ASTStatement cnode1 = (ASTStatement) node.jjtGetChild(1);
+        cnode1.jjtAccept(this, data);
+        fileWriter.addComment("Go back to start of While \r\n", "ASTWhileStatement");
+        fileWriter.addCode("goto " + startLabel + ";\r\n", "ASTWhileStatement");
+        fileWriter.addComment("End of While-Statement \r\n", "ASTWhileStatement");
+        fileWriter.addCode(endlabel + ":\r\n", "ASTWhileStatement");
         // Return to parent node (or move to sibling node if exists)
         return null;
     }
@@ -1665,8 +1794,8 @@ public class SymbolTable implements CompilerVisitor {
                     ASTRelationalExpression cnode1 = (ASTRelationalExpression) node.jjtGetChild(i);
                     ASTRelationalExpression cnode2 = (ASTRelationalExpression) node.jjtGetChild(i + 1);
                     // load variables
-                    returnData1 = visitRelationalExpression((ASTRelationalExpression) cnode1.jjtGetChild(i));
-                    returnData2 = visitRelationalExpression((ASTRelationalExpression) cnode2.jjtGetChild(i + 1));
+                    returnData1 = visitRelationalExpression(cnode1);
+                    returnData2 = visitRelationalExpression(cnode2);
                 } else {
                     // prep next node for comparison
                     ASTRelationalExpression cnode2 = (ASTRelationalExpression) node.jjtGetChild(i + 1);

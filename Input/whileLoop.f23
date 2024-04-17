@@ -1,0 +1,14 @@
+program whileLoop {
+    function integer main()
+    {
+        integer i := 25;
+
+        while (i > 0) 
+        {
+            print_integer( i );
+            i--;
+        }
+
+        print_string( "Finished\n" );
+    }
+}
