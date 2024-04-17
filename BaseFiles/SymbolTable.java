@@ -422,8 +422,8 @@ public class SymbolTable implements CompilerVisitor {
 
         // Print information about node
         printNode(ID, "ASTProgram");
-
         fileWriter.addCode("int yourmain()\r\n" + "{\r\n", "ASTProgram");
+        fileWriter.addCode("int*    P[16];\r\n", "ASTProgram");
         fileWriter.addCode("goto L000;\r\n", "ASTProgram");
         // Iterate through children nodes
         node.childrenAccept(this, data);
@@ -2426,6 +2426,35 @@ public class SymbolTable implements CompilerVisitor {
         } else {
             ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
             visitReturn = visitExpression(cnode);
+            if (visitReturn.type == "INTEGER") {
+                int register = memoryHelper.requestIntRegister();
+                int register1 = memoryHelper.requestIntRegister();
+                fileWriter.addCode("R[" + register + "] = &Mem[SR + " + vr.memoryLocation + "];\r\n",
+                        "ASTPrimarySuffix");
+                fileWriter.loadRegister(register1, visitReturn.memoryLocation, visitReturn.type, "ASTPrimarySuffix");
+                fileWriter.addCode("R[" + register + "] = R[" + register + "] + R[" + register1 + "];\r\n",
+                        "ASTPrimarySuffix");
+                //fileWriter.addCode("R[" + register + "] = &Mem[SR + R[" + register + "]];", "ASTPrimarySuffix");
+                fileWriter.storeRegister(register, visitReturn, "ASTPrimarySuffix");
+                memoryHelper.returnIntRegister(register);
+                memoryHelper.returnIntRegister(register1);
+                memoryHelper.returnVariable(visitReturn.memoryLocation, visitReturn.type);
+            } else if (visitReturn.type == "DOUBLE") {
+                int register = memoryHelper.requestFloatRegister();
+                int register1 = memoryHelper.requestFloatRegister();
+                fileWriter.addCode("F[" + register + "] = &Mem[SR + " + vr.memoryLocation + "];\r\n",
+                        "ASTPrimarySuffix");
+                fileWriter.loadRegister(register1, visitReturn.memoryLocation, visitReturn.type, "ASTPrimarySuffix");
+                fileWriter.addCode("F[" + register + "] = F[" + register + "] + F[" + register1 + "];\r\n",
+                        "ASTPrimarySuffix");
+                //fileWriter.addCode("F[" + register + "] = &Mem[SR + F[" + register + "]];", "ASTPrimarySuffix");
+                fileWriter.storeRegister(register, visitReturn, "ASTPrimarySuffix");
+                memoryHelper.returnFloatRegister(register);
+                memoryHelper.returnFloatRegister(register1);
+                memoryHelper.returnVariable(visitReturn.memoryLocation, visitReturn.type);
+            } else {
+                throw new RuntimeException("Error: Illegal use of array operator on non-integer type.");
+            }
         }
         return visitReturn;
     }

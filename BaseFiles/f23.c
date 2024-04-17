@@ -49,6 +49,7 @@ char    SBuf[F23_SbufSize];     /* String input buffer              */
 double *FMem;                   /* Floating point version of Mem    */
 char   *SMem;                   /* String version of Mem            */
 
+
 int     SR;                     /* Stack register                   */
 int     FR;                     /* Frame register                   */
  
@@ -475,6 +476,7 @@ int main(int argc, char **argv) {
 
     FMem = (double*)Mem;
     SMem = (char*)Mem;
+    
 
     /*****************************************************************
      *
