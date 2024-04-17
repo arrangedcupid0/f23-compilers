@@ -4,15 +4,7 @@ program delete_this_1
     {
         integer arr[5];
         arr[0] := 9;
-        arr[1] := 8;
-        arr[2] := 7;
-        arr[3] := 6;
-        arr[4] := 5;
         
         print_integer( arr[0] );
-        print_integer( arr[1] );
-        print_integer( arr[2] );
-        print_integer( arr[3] );
-        print_integer( arr[4] );
     }
 }
