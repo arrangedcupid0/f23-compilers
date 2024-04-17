@@ -2429,12 +2429,12 @@ public class SymbolTable implements CompilerVisitor {
             if (visitReturn.type == "INTEGER") {
                 int register = memoryHelper.requestIntRegister();
                 int register1 = memoryHelper.requestIntRegister();
-                fileWriter.addCode("R[" + register + "] = &Mem[SR + " + vr.memoryLocation + "];\r\n",
+                fileWriter.addCode("R[" + register + "] = Mem[SR + " + vr.memoryLocation + "];\r\n",
                         "ASTPrimarySuffix");
                 fileWriter.loadRegister(register1, visitReturn.memoryLocation, visitReturn.type, "ASTPrimarySuffix");
                 fileWriter.addCode("R[" + register + "] = R[" + register + "] + R[" + register1 + "];\r\n",
                         "ASTPrimarySuffix");
-                //fileWriter.addCode("R[" + register + "] = &Mem[SR + R[" + register + "]];", "ASTPrimarySuffix");
+                fileWriter.addCode("R[" + register + "] = Mem[SR + R[" + register + "]];", "ASTPrimarySuffix");
                 fileWriter.storeRegister(register, visitReturn, "ASTPrimarySuffix");
                 memoryHelper.returnIntRegister(register);
                 memoryHelper.returnIntRegister(register1);
@@ -2447,7 +2447,7 @@ public class SymbolTable implements CompilerVisitor {
                 fileWriter.loadRegister(register1, visitReturn.memoryLocation, visitReturn.type, "ASTPrimarySuffix");
                 fileWriter.addCode("F[" + register + "] = F[" + register + "] + F[" + register1 + "];\r\n",
                         "ASTPrimarySuffix");
-                //fileWriter.addCode("F[" + register + "] = &Mem[SR + F[" + register + "]];", "ASTPrimarySuffix");
+                fileWriter.addCode("F[" + register + "] = &Mem[SR + F[" + register + "]];", "ASTPrimarySuffix");
                 fileWriter.storeRegister(register, visitReturn, "ASTPrimarySuffix");
                 memoryHelper.returnFloatRegister(register);
                 memoryHelper.returnFloatRegister(register1);
