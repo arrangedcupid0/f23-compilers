@@ -12,6 +12,9 @@ L000:
 			// Generated from function: ASTLiteral
 R[0] = 0;
 F23_Time += (1);
+
+Mem[SR - 1] = R[0];
+
 		// Generated from function: ASTLiteral
 R[3] = 9;
 F23_Time += (1);
@@ -20,9 +23,9 @@ F23_Time += (1);
 R[4] = &Mem[SR]; //R[4] holds address of top of array
 F23_Time += (20 + 1);
 			// Generated from function: ASTStatementExpression
-R[5] = R[(3 - 3)%32]; //first 3 is dynamic and is generated iteratively. second three is hardcoded because of the structure
-			//holds the index we're referencing
+R[5] = Mem[SR - 1];
 F23_Time += (20 + 1);
+			//holds the index we're referencing
 			// Generated from function: ASTStatementExpression
 R[4] = R[4] + R[5]; //now holds the address of the index we want
 			// Generated from function: ASTStatementExpression
