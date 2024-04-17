@@ -1,4 +1,5 @@
 			// Generated from function: ASTProgram
+			// Generated from function: ASTProgram
 int yourmain()
 {
 			// Generated from function: ASTProgram
@@ -265,6 +266,11 @@ F23_Time += (20 + 1);
 			// Generated from function: ASTPrintIntStatement
 print_int( Mem[SR+1] );
 			// Generated from function: ASTFunctionDeclaration
+			// Generated from function: ASTPrintIntStatement
+print_int( Mem[SR+1] );
+			// Generated from function: ASTFunctionDeclaration
 return 0;
+			// Generated from function: ASTProgram
+}
 			// Generated from function: ASTProgram
 }
