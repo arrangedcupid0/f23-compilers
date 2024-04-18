@@ -372,7 +372,7 @@ public class SymbolTable implements CompilerVisitor {
 
         public void LoadStrToSMem(int memoryLocation, String value, String functionName) {
             fileText.append("\t\t\t// Generated from function: " + functionName + "\r\n");
-            fileText.append("strcpy(&SMem[" + memoryLocation + "], " + value + ");\r\n");
+            fileText.append("strcpy(&SMem[stringOffset+" + memoryLocation + "], " + value + ");\r\n");
             fileText.append("F23_Time += (60 * " + value.length() + ");\r\n");
         }
 
@@ -383,8 +383,10 @@ public class SymbolTable implements CompilerVisitor {
 
         public void prependHeader() {
             String code = "int yourmain()\r\n" + "{\r\n"
-                    + "int*    P[16];\r\n"
-                    + "SR = SR + 1;\r\n"
+                    + "int64_t*    P[16];\r\n"
+                    + "int stringOffset = " + (memoryHelper.MaxIntCounter + memoryHelper.MaxIntCounter % 2)
+                    + (memoryHelper.MaxFMemCounter) + ";\r\n"
+                    + "SR = SR + 21;\r\n"
                     + "FR = " + (memoryHelper.MaxIntCounter + memoryHelper.MaxIntCounter % 2)
                     + ";\r\n"
                     + "FR = FR >> 1; \r\n"
@@ -494,7 +496,7 @@ public class SymbolTable implements CompilerVisitor {
         if (!functionName.equals("main")) {
             fileWriter.addCode("goto *P[0];\r\n", "ASTFunctionDeclaration");
         } else {
-            fileWriter.addCode("SR = SR - 1;\r\nreturn 0;\r\n", "ASTFunctionDeclaration");
+            fileWriter.addCode("SR = SR - 21;\r\nreturn 0;\r\n", "ASTFunctionDeclaration");
         }
         // decrease scope
         symbolTable = symbolTable.parent;
@@ -605,10 +607,12 @@ public class SymbolTable implements CompilerVisitor {
                 "Variable Declaration: " + VarID + " at mem location " + symbolTable.getEntry(VarID).MemoryLocation,
                 "ASTLocalVariableDeclaration");
         if (Type.equals("INTEGER")) {
-            fileWriter.addCode("Mem[" + symbolTable.getEntry(VarID).MemoryLocation + "] = P[" + parameterNumber + "];",
+            fileWriter.addCode(
+                    "Mem[SR +" + symbolTable.getEntry(VarID).MemoryLocation + "] = *P[" + parameterNumber + "];",
                     "ASTParameter");
         } else if (Type.equals("DOUBLE")) {
-            fileWriter.addCode("FMem[" + symbolTable.getEntry(VarID).MemoryLocation + "] = P[" + parameterNumber + "];",
+            fileWriter.addCode(
+                    "FMem[FR +" + symbolTable.getEntry(VarID).MemoryLocation + "] = *P[" + parameterNumber + "];",
                     "ASTParameter");
         } else {
             throw new RuntimeException("Error: Type " + Type + " is not supported for parameters");
@@ -950,7 +954,7 @@ public class SymbolTable implements CompilerVisitor {
             } else if (returnData.type == "STRING") {
                 if (assign.equals("=")) {
                     register1 = memoryHelper.requestVariable(returnData.type);
-                    String MemLoc1 = "SMem[" + returnData1.memoryLocation + "]";
+                    String MemLoc1 = "&SMem[stringOffset+" + returnData1.memoryLocation + "]";
                     fileWriter.LoadStrToSMem(returnData.memoryLocation, MemLoc1, "ASTStatementExpression");
                     memoryHelper.returnVariable(returnData1.memoryLocation, returnData1.type);
                     return returnData;
@@ -1324,7 +1328,8 @@ public class SymbolTable implements CompilerVisitor {
 
         ASTExpression cnode = (ASTExpression) node.jjtGetChild(0);
         VisitReturn returnData = visitExpression(cnode);
-        fileWriter.addCode("print_string( &SMem[" + returnData.memoryLocation + "] );\r\n", "ASTPrintStringStatement");
+        fileWriter.addCode("print_string( &SMem[stringOffset+" + returnData.memoryLocation + "] );\r\n",
+                "ASTPrintStringStatement");
 
         // Iterate through children nodes
         node.childrenAccept(this, data);
@@ -2586,7 +2591,7 @@ public class SymbolTable implements CompilerVisitor {
             ASTArguments cnode = (ASTArguments) node.jjtGetChild(0);
             visitReturn = visitArguments(cnode);
             String returnLabel = symbolTable.getNewLabel();
-            fileWriter.addCode("P[0] = &" + returnLabel + ";\r\n",
+            fileWriter.addCode("P[0] = &&" + returnLabel + ";\r\n",
                     "ASTArguments");
             fileWriter.addCode(
                     "goto " + symbolTable.getEntry(vr.SymbolTableEntry).Label + ";", "ASTPrimarySuffix");
@@ -2767,13 +2772,13 @@ public class SymbolTable implements CompilerVisitor {
             ASTExpression cnode = (ASTExpression) node.jjtGetChild(i);
             visitReturn = visitExpression(cnode);
             if (visitReturn.type == "INTEGER") {
-                fileWriter.addCode("P[" + (i + 1) + "] = &Mem[" + visitReturn.memoryLocation + "];\r\n",
+                fileWriter.addCode("P[" + (i + 1) + "] = &Mem[SR+" + visitReturn.memoryLocation + "];\r\n",
                         "ASTArgumentList");
             } else if (visitReturn.type == "DOUBLE") {
-                fileWriter.addCode("P[" + (i + 1) + "] = &FMem[" + visitReturn.memoryLocation + "];\r\n",
+                fileWriter.addCode("P[" + (i + 1) + "] = &FMem[FR+" + visitReturn.memoryLocation + "];\r\n",
                         "ASTArgumentList");
             } else if (visitReturn.type == "STRING") {
-                fileWriter.addCode("P[" + (i + 1) + "] = &SMem[" + visitReturn.memoryLocation + "];\r\n",
+                fileWriter.addCode("P[" + (i + 1) + "] = &SMem[stringOffset+" + visitReturn.memoryLocation + "];\r\n",
                         "ASTArgumentList");
             } else {
                 throw new RuntimeException("Error: Type " + visitReturn.type + " is not supported for arguments.");
