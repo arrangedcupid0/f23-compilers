@@ -13,6 +13,8 @@ try_te4: treegen gen comp run_te4
 
 try_del1: treegen gen comp run_del1
 
+try_mg: treegen gen comp run_mg
+
 try_if: treegen gen comp run_if
 
 try_do: treegen gen comp run_do
